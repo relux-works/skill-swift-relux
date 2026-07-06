@@ -1,0 +1,10 @@
+.DS_Store
+.temp/
+.build/
+DerivedData/
+Derived/
+*.xcresult
+*.xcodeproj
+*.xcworkspace
+Package.resolved
+
