@@ -111,6 +111,9 @@ This keeps dependency ownership explicit:
   data.
 - Do not mutate state directly from a `Flow`; dispatch `Action` and let the
   reducer own mutation.
+- Keep reducer implementations in a dedicated namespace-named file, for
+  example `<Module>+Business+State+Reducer.swift`, so state declaration files
+  stay focused on stored data, initial values, and lifecycle hooks.
 
 ## Actions And Effects
 
@@ -169,20 +172,27 @@ failures remain observable.
 
 ## Flow And Saga
 
-- Prefer `Relux.Flow` when the caller may need success/failure, navigation,
-  dismissal, or inline error handling from an operation result.
-- Use `Relux.Saga` for fire-and-forget background work and cross-domain
-  orchestration.
+- Prefer `Relux.Flow` when a specific effect behaves like an operation and the
+  caller may need success/failure, navigation, dismissal, retry, or inline error
+  handling from the result.
+- Use `Relux.Saga` for fire-and-forget reactions, subscriptions, background
+  loops, startup orchestration, fan-out work, or cross-domain coordination where
+  no caller waits for a typed operation result.
 - Define a module-local protocol, for example `protocol IFlow: Relux.Flow {}`.
 - Define the actor separately, then conform in an extension:
   `extension Auth.Flow: Auth.IFlow`.
 - Give flows an explicit `let dispatcher: Relux.Dispatcher`.
 - Accept `dispatcher: Relux.Dispatcher? = nil` in initializers for tests; fall
   back to `await Self.defaultDispatcher` only as the runtime default.
+- Flows and sagas may receive dependencies on business states when they need
+  read-only snapshots or queries. This is a read dependency, not a mutation
+  channel.
 - `apply(_:)` should switch on `effect as? <Module>.Effect`.
 - Return `.success` for foreign effects.
 - Delegate real effect cases to private methods once logic appears.
 - Dispatch follow-up state changes via `await actions { <Module>.Action... }`.
+- Never mutate `BusinessState`, `HybridState`, or `UIState` directly from a flow
+  or saga. Direct writes bypass reducers and break Relux's unidirectional data
+  flow; emit actions and let reducers own all state transitions.
 - Return `.failure(error)` only when the flow outcome itself should be
   observable by the caller.
-

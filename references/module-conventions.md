@@ -25,10 +25,12 @@ Recommended layout:
   Business/
     <Module>+Business+Action.swift
     <Module>+Business+State.swift
-    <Module>+State+Business+Reducer.swift
+    <Module>+Business+State+Reducer.swift
     Middleware/
       <Module>+Business+Effect.swift
       <Module>+Business+Flow.swift
+    Model/
+      <Module>+Business+Model+Transfer.swift
   Error/
     <Module>+Error.swift
 ```
@@ -42,6 +44,11 @@ Recommended layout:
   `Flow`, `Err`, `Module`.
 - File names should follow the namespace path, for example
   `Auth+Business+State.swift`.
+- Split entities by namespace and type ownership. Do not dump unrelated models,
+  DTOs, actions, effects, reducers, and helpers into one large file.
+- Use one focused file per namespace path or tightly coupled type family, for
+  example `Transfer+Business+Model+Recipient.swift` and
+  `Transfer+Data+API+Model+QuoteResponse.swift`.
 
 ## Module Composition
 
@@ -64,7 +71,9 @@ Recommended layout:
   `@MainActor final class State: Relux.HybridState, ObservableObject`.
 - `State.reduce(with:)` should type-match only the module `Action` and delegate
   to an internal reducer method.
-- Put the action reducer in `<Module>+State+Business+Reducer.swift`.
+- Put the action reducer in `<Module>+Business+State+Reducer.swift`. The state
+  file should declare stored data, initial values, and lifecycle hooks; reducer
+  switch logic belongs in the reducer file.
 - Reducers must switch exhaustively over `Action`.
 - `cleanup()` must reset every mutable/published field once the state has real
   data.
@@ -164,16 +173,20 @@ extension Checkout {
 
 ## Flow
 
-- Prefer `Relux.Flow` when the caller may need success/failure, navigation,
-  dismissal, or inline error handling from the operation result.
-- Use `Relux.Saga` for fire-and-forget background work and cross-domain
-  orchestration.
+- Prefer `Relux.Flow` when a specific effect behaves like an operation and the
+  caller may need success/failure, navigation, dismissal, retry, or inline error
+  handling from the result.
+- Use `Relux.Saga` for fire-and-forget reactions, subscriptions, background
+  loops, startup orchestration, fan-out work, or cross-domain coordination where
+  no caller waits for a typed operation result.
 - Define a module-local protocol, for example `protocol IFlow: Relux.Flow {}`.
 - Define the actor separately, then conform in an extension:
   `extension Auth.Flow: Auth.IFlow`.
 - Give flows an explicit `let dispatcher: Relux.Dispatcher`.
 - Accept `dispatcher: Relux.Dispatcher? = nil` in the initializer for tests;
   fallback to `await Self.defaultDispatcher` only as the runtime default.
+- A flow or saga may depend on a `BusinessState` for read-only snapshots or
+  queries, but it must not mutate that state directly.
 - `apply(_:)` should switch on `effect as? <Module>.Effect`.
 - Return `.success` for foreign effects.
 - For empty skeleton flows, keep the direct optional switch shape with
@@ -181,6 +194,9 @@ extension Checkout {
   real logic exists.
 - Delegate real effect cases to private methods once logic appears.
 - Dispatch follow-up state changes via `await actions { <Module>.Action... }`.
+- Mutating `BusinessState`, `HybridState`, or `UIState` from a flow/saga
+  violates unidirectional data flow. Emit an action and let the reducer perform
+  the transition instead.
 - Return `.failure(error)` only when the flow outcome itself should be
   observable by the caller.
 
@@ -200,4 +216,3 @@ extension Checkout {
 - Add reducer tests once actions mutate state.
 - Avoid tests that lock in fake SDK/auth/product behavior before the real
   integration contract exists.
-
