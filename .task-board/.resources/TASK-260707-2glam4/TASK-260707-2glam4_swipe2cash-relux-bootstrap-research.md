@@ -1,0 +1,8 @@
+Research anchors from Swipe2Cash and local Relux sources:
+
+- app/Targets/Swipe2Cash/Sources/App/S2CDemo+Registry.swift: Registry.configure() registers SwiftIoC container entries for Relux, Relux.Store, Relux.RootSaga, Relux.Logger, app config, feature modules, network services, diagnostics, and domain providers. buildRelux() resolves infrastructure from IoC and registers modules inside Relux.register { ... }.
+- app/Targets/Swipe2Cash/Sources/App/S2CDemo+App.swift: App.init performs synchronous app/platform bootstrap (automation flags, idle timer, fonts, navigation appearance) and calls Registry.configure(). body uses Relux.Resolver with a splash, content(relux), and async resolveBootstrappedRelux().
+- resolveBootstrappedRelux() resolves Relux through IoC, initializes diagnostics, dispatches startup effects/actions, then returns the resolved runtime. This is why UI waits for Relux to prop through IoC before rendering product content.
+- packages/swiftui-relux/Sources/View+ReluxResolver.swift: Relux.Resolver keeps splash until resolver() returns; after resolution it renders content(relux).relux(relux).passingObservableToEnvironment(fromStore: relux.store).
+- packages/swiftui-relux/Sources/View+ReluxEnvironment.swift: .relux(relux) writes Environment(\.relux); reluxTemporal connects temporary HybridState to relux.store and runs onConnect after the state is connected.
+- packages/swift-relux/Sources/Relux/Relux/Relux+Dispatcher/Relux+Dispatcher+Interface.swift: await actions/await action route to Relux.shared.dispatcher._actions; performAsync wraps the same dispatch in Task for synchronous UI callbacks.
