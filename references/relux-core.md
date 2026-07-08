@@ -40,6 +40,68 @@ Use `BusinessState` plus `UIState` when the feature grows.
 - App registries should resolve async modules and register them inside
   `Relux.register { ... }` with `await` where required.
 
+## IoC Composition
+
+For real apps, do not build Relux infrastructure directly inside SwiftUI view
+bodies. Use the app scaffold to create an IoC registry/composition root, then
+register Relux infrastructure and feature modules there.
+
+Typical registry shape:
+
+```swift
+extension DemoApp {
+    @MainActor
+    enum Registry {
+        static let ioc = IoC()
+
+        static func configure() {
+            ioc.register(Relux.self, lifecycle: .container, resolver: Self.buildRelux)
+            ioc.register(Relux.Store.self, lifecycle: .container, resolver: Self.buildReluxStore)
+            ioc.register(Relux.RootSaga.self, lifecycle: .container, resolver: Self.buildReluxRootSaga)
+            ioc.register((any Relux.Logger).self, lifecycle: .container, resolver: Self.buildReluxLogger)
+
+            ioc.register(Feature.Module.self, lifecycle: .container, resolver: Self.buildFeatureModule)
+            ioc.register((any Feature.Service).self, lifecycle: .container, resolver: Self.buildFeatureService)
+        }
+
+        static func resolve<T>(_ type: T.Type) -> T {
+            ioc.get(by: type)!
+        }
+
+        static func resolveAsync<T>(_ type: T.Type) async -> T {
+            await ioc.getAsync(by: type)!
+        }
+    }
+}
+```
+
+Build `Relux` from IoC-resolved infrastructure and register modules inside the
+Relux builder:
+
+```swift
+extension DemoApp.Registry {
+    private static func buildRelux() async -> Relux {
+        await Relux(
+            logger: resolve((any Relux.Logger).self),
+            appStore: resolve(Relux.Store.self),
+            rootSaga: resolve(Relux.RootSaga.self)
+        )
+        .register { @MainActor in
+            await resolveAsync(Feature.Module.self)
+            resolve(AnotherFeature.Module.self)
+        }
+    }
+}
+```
+
+This keeps dependency ownership explicit:
+
+- the app chooses concrete implementations;
+- feature modules receive protocol dependencies through constructors;
+- `Relux.Resolver` waits for the runtime but does not know how dependencies are
+  built;
+- previews/tests can replace registry builders or construct modules directly.
+
 ## Reducers
 
 - `State.reduce(with:)` should type-match the module action and delegate to an
@@ -56,6 +118,54 @@ Use `BusinessState` plus `UIState` when the feature grows.
 - `Effect: Relux.Effect` is for side-effect requests handled by middleware.
 - Keep actions and effects domain-named. Remove `testAction`,
   `placeholderEffect`, and similar scaffolding before review.
+
+## Dispatch Helpers
+
+Use `await actions { ... }` when async code needs to dispatch one or more
+actions/effects and observe the reduced result:
+
+```swift
+await actions {
+    Auth.Effect.restoreSession
+    Router.Action.set([.home])
+}
+```
+
+Use `await action { ... }` for a single action/effect when the singular form is
+clearer:
+
+```swift
+await action {
+    Auth.Action.logoutCompleted
+}
+```
+
+Both helpers route through `Relux.shared.dispatcher` by default. When a concrete
+runtime is already in hand, prefer its dispatcher to avoid hidden global
+coupling:
+
+```swift
+await relux.dispatcher.actions {
+    App.Effect.start
+}
+```
+
+Use `performAsync { ... }` from synchronous call sites such as SwiftUI `Button`
+actions, gesture handlers, or view helper closures. It creates a `Task` and
+dispatches through the Relux dispatcher without forcing the caller to become
+`async`:
+
+```swift
+Button("Track") {
+    performAsync {
+        Analytics.Effect.trackTap
+    }
+}
+```
+
+Do not use `performAsync` when the surrounding code is already async and the
+result matters; use `await action` or `await actions` instead so ordering and
+failures remain observable.
 
 ## Flow And Saga
 
