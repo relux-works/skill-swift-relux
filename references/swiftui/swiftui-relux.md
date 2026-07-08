@@ -134,73 +134,8 @@ as lightweight UI shape protocols only; do not use them as permission to reach
 back into the store. Prefer plain SwiftUI inputs and callbacks so pages are
 previewable, testable, and reusable without constructing a Relux runtime.
 
-Recommended shape:
-
-```swift
-struct TransferContainer: Relux.UI.Container {
-    @EnvironmentObject private var state: MoneyTransfer.UI.State
-
-    var body: some View {
-        TransferPage(
-            props: .init(state),
-            reactions: .init(
-                onSubmit: Relux.UI.ViewCallback { amount in
-                    await actions {
-                        MoneyTransfer.Effect.submit(amount: amount)
-                    }
-                },
-                onCancel: Relux.UI.ViewCallback {
-                    await actions {
-                        MoneyTransfer.Action.cancelTapped
-                    }
-                }
-            ),
-            styles: .default,
-            resources: .localized
-        )
-    }
-}
-
-struct TransferPage: Relux.UI.View {
-    let props: Props
-    let reactions: Reactions
-    let styles: Styles
-    let resources: Resources
-
-    var body: some View {
-        VStack(spacing: styles.sectionSpacing) {
-            TransferHeader(title: resources.title)
-            TransferAmountSection(amount: props.amount, onSubmit: reactions.onSubmit)
-            TransferFooter(onCancel: reactions.onCancel)
-        }
-    }
-
-    struct Props: Relux.UI.ViewProps {
-        let amount: Decimal?
-
-        init(_ state: MoneyTransfer.UI.State) {
-            amount = state.amount
-        }
-    }
-
-    struct Reactions: Relux.UI.ViewCallbacks {
-        let onSubmit: Relux.UI.ViewCallback<Decimal>
-        let onCancel: Relux.UI.ViewCallback<Void>
-    }
-
-    struct Styles: Equatable, Hashable, Sendable {
-        let sectionSpacing: CGFloat
-
-        static let `default` = Styles(sectionSpacing: 16)
-    }
-
-    struct Resources: Equatable, Hashable, Sendable {
-        let title: String
-
-        static let localized = Resources(title: l10n.transfer.title)
-    }
-}
-```
+See [../../snippets/swiftui-container-page.md](../../snippets/swiftui-container-page.md)
+for a concrete container/page example.
 
 For pages and reusable components, group incoming parameters by role:
 
@@ -233,6 +168,24 @@ File naming should follow the same namespace shape:
 - `<Module>+UI+TransferAmountSection.swift`
 - `<Module>+UI+TransferFooter.swift`
 
+## Business/UI State Projection
+
+When a feature uses separate `BusinessState` and `UIState`, make the projection
+pipeline explicit and one-directional: business state produces renderable UI
+state, while UI events still dispatch actions/effects back into Relux.
+
+- Put mapping code near the UI state or a module-local mapper, not in SwiftUI
+  view bodies.
+- Keep the projection lifecycle owned by the module/container so it is obvious
+  when observation starts and stops.
+- Avoid ad hoc Combine pipelines that cross actor isolation or make state
+  propagation look synchronous.
+- Do not write back into business state from the UI projection. Dispatch actions
+  and let reducers mutate state.
+- If the caller needs to wait for a completed operation, use a `Relux.Flow`
+  result instead of assuming the projected `UIState` has already caught up after
+  dispatch.
+
 ## Local SwiftUI State
 
 As with React plus Redux, not every UI bit belongs in Relux. Keep state local to
@@ -262,21 +215,49 @@ Ownership ladder:
   survive presentation changes -> Relux `HybridState`, `BusinessState`, or
   `UIState`.
 
+## Pull To Refresh
+
+SwiftUI `.refreshable` can keep its refresh lifecycle stale when the closure
+awaits a slow Relux action/effect. Do not bind pull-to-refresh directly to
+long-running business work:
+
+- use `performAsync { ... }` inside `.refreshable`;
+- let the closure return promptly so SwiftUI can finish the gesture lifecycle;
+- represent loading, result, and errors through Relux state observed by the view;
+- await inside `.refreshable` only when the work is intentionally short and the
+  system spinner should be tied to that exact operation.
+
+See [../../snippets/refreshable-perform-async.md](../../snippets/refreshable-perform-async.md).
+
+## Logout Transition
+
+For logout/session reset, prefer a two-step transition:
+
+- First route to a minimal `logoutInProgress` screen.
+- Then perform token/session teardown, service shutdown, store cleanup, and the
+  final route to the unauthenticated flow.
+
+The intermediate screen is not cosmetic. It removes active product views from
+the hierarchy, which lets SwiftUI cancel view-owned `.task` work and other
+presentation-scoped async processes before `Relux.Store.cleanup(exclusions:)`
+resets business state. Without this step, late updates from disappearing views
+can dispatch actions into states that are already being cleaned, which creates
+logout races.
+
+Keep the `logoutInProgress` screen small:
+
+- do not depend on user/session states that cleanup is about to reset;
+- it may use `.task` only to dispatch the second-phase logout effect;
+- keep long-running teardown work in a saga/flow, not in the view task itself;
+- exclude only app-shell states that must survive cleanup, such as routers or
+  app configuration.
+
 ## Temporal State
 
 For wizard-style or modal flows, keep temporal state owned by the SwiftUI
-container and connect it to the current `Relux.Store`:
-
-```swift
-struct MoneyTransferFlow: View {
-    @StateObject private var state = MoneyTransfer.State()
-
-    var body: some View {
-        content
-            .reluxTemporal(state: state)
-    }
-}
-```
+container and connect it to the current `Relux.Store`. See
+[../../snippets/temporal-state.md](../../snippets/temporal-state.md) for
+attachment examples.
 
 Use temporal state for short-lived interaction state that belongs to the
 currently rendered container rather than to durable product state: wizard step
@@ -285,28 +266,8 @@ or other data that should disappear with the presentation. This keeps global
 Relux modules from accumulating screen-local scratch fields.
 
 Attach temporal state at the container boundary, not inside individual leaf
-views:
-
-```swift
-struct TransferContainer: View {
-    @StateObject private var flowState = MoneyTransfer.UI.FlowState()
-
-    var body: some View {
-        TransferContent(state: flowState)
-            .reluxTemporal(state: flowState)
-    }
-}
-```
-
-When startup actions need the temporal state to already be registered, use
-`onConnect`:
-
-```swift
-content
-    .reluxTemporal(state: state) { relux, state in
-        await relux.dispatch(StartSessionEffect(state: state))
-    }
-```
+views. When startup actions need the temporal state to already be registered,
+use `onConnect`.
 
 Rules:
 

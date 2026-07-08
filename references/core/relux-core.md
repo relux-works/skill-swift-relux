@@ -13,6 +13,29 @@ around Swift concurrency.
 - Actors and structured concurrency are used to avoid data races and keep async
   behavior explicit.
 
+Relux intentionally differs from classic Redux in a few places:
+
+- `Relux.Store` connects and stores registered states; it is not where feature
+  transition logic lives.
+- Relux states are mutable runtime objects, and a reducer is part of the state
+  object instead of a detached pure function returning a new state value.
+- `Relux.Dispatcher` is a separate event bus for actions and effects. Logging
+  and middleware observe the dispatcher path.
+- Middleware is the effect side of the same event stream: `RootSaga` routes
+  effects to sagas/flows, sagas/flows call services, then dispatch follow-up
+  actions or effects.
+
+In an app architecture, Relux is the product-state and business-event boundary:
+
+- it owns shared app/product state;
+- it helps define feature module boundaries;
+- it hosts business orchestration in sagas and flows;
+- it talks to service-oriented/API layers from sagas and flows;
+- it talks to SwiftUI only through containers and environment injection.
+
+Keep private one-view presentation details out of Relux unless they need a
+longer lifetime, cross-view sharing, or business observation.
+
 ## State Types
 
 Use `HybridState` for simple SwiftUI-observed features.
@@ -27,6 +50,17 @@ Use `BusinessState` plus `UIState` when the feature grows.
 - `UIState` is the observable SwiftUI-facing wrapper.
 - Prefer this split when data is shared across features, transformed for UI, or
   aggregated from multiple domains.
+- The projection from `BusinessState` to `UIState` is the module's
+  responsibility. Keep it one-way and explicit.
+- Do not use Combine subscriptions as an escape hatch around actor isolation.
+  They can hide concurrency boundaries and make writes look synchronous when
+  they are not.
+- Treat `AsyncChannel`/`Channel`-style bridges from `swift-async-algorithms` as
+  a specialized integration choice, not the default state binding pattern.
+- Structured concurrency does not guarantee that a SwiftUI-facing `UIState` has
+  already observed a `BusinessState` change immediately after an action
+  dispatch. Use `HybridState` for simple cases, or `Relux.Flow` when the caller
+  needs an operation result.
 
 ## Modules
 
@@ -46,53 +80,8 @@ For real apps, do not build Relux infrastructure directly inside SwiftUI view
 bodies. Use the app scaffold to create an IoC registry/composition root, then
 register Relux infrastructure and feature modules there.
 
-Typical registry shape:
-
-```swift
-extension DemoApp {
-    @MainActor
-    enum Registry {
-        static let ioc = IoC()
-
-        static func configure() {
-            ioc.register(Relux.self, lifecycle: .container, resolver: Self.buildRelux)
-            ioc.register(Relux.Store.self, lifecycle: .container, resolver: Self.buildReluxStore)
-            ioc.register(Relux.RootSaga.self, lifecycle: .container, resolver: Self.buildReluxRootSaga)
-            ioc.register((any Relux.Logger).self, lifecycle: .container, resolver: Self.buildReluxLogger)
-
-            ioc.register(Feature.Module.self, lifecycle: .container, resolver: Self.buildFeatureModule)
-            ioc.register((any Feature.Service).self, lifecycle: .container, resolver: Self.buildFeatureService)
-        }
-
-        static func resolve<T>(_ type: T.Type) -> T {
-            ioc.get(by: type)!
-        }
-
-        static func resolveAsync<T>(_ type: T.Type) async -> T {
-            await ioc.getAsync(by: type)!
-        }
-    }
-}
-```
-
-Build `Relux` from IoC-resolved infrastructure and register modules inside the
-Relux builder:
-
-```swift
-extension DemoApp.Registry {
-    private static func buildRelux() async -> Relux {
-        await Relux(
-            logger: resolve((any Relux.Logger).self),
-            appStore: resolve(Relux.Store.self),
-            rootSaga: resolve(Relux.RootSaga.self)
-        )
-        .register { @MainActor in
-            await resolveAsync(Feature.Module.self)
-            resolve(AnotherFeature.Module.self)
-        }
-    }
-}
-```
+See [../../snippets/ioc-registry.md](../../snippets/ioc-registry.md) for a
+concrete registry and Relux builder example.
 
 This keeps dependency ownership explicit:
 
@@ -114,6 +103,29 @@ This keeps dependency ownership explicit:
 - Keep reducer implementations in a dedicated namespace-named file, for
   example `<Module>+Business+State+Reducer.swift`, so state declaration files
   stay focused on stored data, initial values, and lifecycle hooks.
+
+## Store Cleanup
+
+Use `Relux.Store.cleanup(exclusions:)` for app-wide session cleanup, especially
+on logout. See [../../snippets/store-cleanup.md](../../snippets/store-cleanup.md)
+for a concrete cleanup example.
+
+The exclusions list takes `Relux.BusinessState.Type` values. Use it for states
+that must survive session reset, such as routers, feature flags, network
+monitoring, app configuration, or other app-shell state that should not be
+cleared with user data.
+
+Rules:
+
+- `cleanup(exclusions:)` calls `cleanup()` on registered business/hybrid states
+  that are not excluded.
+- State `cleanup()` implementations should reset mutable user/session data to
+  initial values.
+- Keep excluded states intentional and short. Exclusions are for app-shell
+  continuity, not for avoiding correct cleanup work.
+- Do not run store cleanup while active product views still own tasks that can
+  dispatch into soon-to-be-cleaned states. Route out of those views first; see
+  the SwiftUI logout transition guidance.
 
 ## Actions And Effects
 
@@ -154,9 +166,9 @@ await relux.dispatcher.actions {
 ```
 
 Use `performAsync { ... }` from synchronous call sites such as SwiftUI `Button`
-actions, gesture handlers, or view helper closures. It creates a `Task` and
-dispatches through the Relux dispatcher without forcing the caller to become
-`async`:
+actions, gesture handlers, `.refreshable`, or view helper closures. It creates a
+`Task` and dispatches through the Relux dispatcher without forcing the caller to
+become `async`:
 
 ```swift
 Button("Track") {
@@ -168,7 +180,10 @@ Button("Track") {
 
 Do not use `performAsync` when the surrounding code is already async and the
 result matters; use `await action` or `await actions` instead so ordering and
-failures remain observable.
+failures remain observable. The important SwiftUI exception is `.refreshable`:
+do not tie SwiftUI pull-to-refresh to a slow awaited Relux action; see
+[../swiftui/swiftui-relux.md](../swiftui/swiftui-relux.md) and
+[../../snippets/refreshable-perform-async.md](../../snippets/refreshable-perform-async.md).
 
 ## Flow And Saga
 

@@ -6,6 +6,9 @@ These conventions apply to app-local and package-local Relux modules.
 
 - Model each feature as one namespace under the owning root, for example
   `App.Auth` or `Payments.Transfer`.
+- Treat Relux modularity as three complementary layers:
+  enum namespaces for semantic grouping, `Relux.Module` for logical runtime
+  registration, and SwiftPM packages for physical boundaries.
 - Put the namespace in `<Module>/<Module>+Namespace.swift`.
 - Keep the Relux module entrypoint in `<Module>/<Module>+Module.swift`.
 - Keep state transitions in `Business/`.
@@ -107,69 +110,8 @@ Recommended layout:
 - Keep call sites declarative: views and flows should say what happened, not
   how the collector payload is shaped.
 
-Recommended shape:
-
-```swift
-extension Profiles {
-    enum Analytics {
-        typealias Event = ProductAnalytics.Event
-
-        enum Screen: String {
-            case profileSelector = "/profiles"
-            var name: String { rawValue }
-        }
-
-        enum ProfileSelector {
-            private static let screenName = Screen.profileSelector.name
-
-            static let screenAppear = Event.screenAppearance(screenName: screenName)
-
-            static func selectProfile(_ profile: String) -> Event {
-                Event.tapElement(
-                    screenName: screenName,
-                    eventCategory: "profiles",
-                    eventLabel: profile.analyticsLabel,
-                    eventContent: "status"
-                )
-            }
-        }
-    }
-}
-```
-
-Call sites:
-
-```swift
-ProfileSelectorView()
-    .trackAppearance(event: Profiles.Analytics.ProfileSelector.screenAppear)
-
-Button {
-    trackEvent(Profiles.Analytics.ProfileSelector.selectProfile(profile.name))
-} label: {
-    Text(title)
-}
-```
-
-For Relux effect-based analytics packages, the typed tree should return the
-public event model used by the effect API:
-
-```swift
-extension Checkout {
-    enum Analytics {
-        enum Payment {
-            static func started(spanID: AnalyticsSDK.SpanID) -> AnalyticsSDK.Event {
-                .continuous(.start(.init(
-                    name: "payment_started",
-                    finishEventName: "payment_finished",
-                    spanID: spanID,
-                    staleTimeout: 30,
-                    parameters: ["screen": .string("checkout")]
-                )))
-            }
-        }
-    }
-}
-```
+See [../../snippets/product-analytics.md](../../snippets/product-analytics.md)
+for typed tree, call-site, and effect-based analytics examples.
 
 ## Flow
 
@@ -210,9 +152,14 @@ extension Checkout {
 
 - Tests must use the current app/root namespace. If the app type is renamed,
   update tests from the old namespace in the same change.
+- Organize Swift Testing suites by the production namespace tree, for example
+  `Module.Test.Business.Flow` and `Module.Test.UI.State`.
 - Composition tests should assert that the module registers its states and flows
   into Relux.
-- Flow tests should cover unknown foreign effects returning `.success`.
+- Flow and saga tests should cover unknown foreign effects returning `.success`.
+- Flow and saga tests should assert the observable contract of the effect:
+  returned `Result`, dispatched follow-up actions/effects, service calls, and
+  error/logger effects when those are part of the behavior.
 - Add reducer tests once actions mutate state.
 - Avoid tests that lock in fake SDK/auth/product behavior before the real
   integration contract exists.

@@ -20,23 +20,45 @@ Use this skill for Swift codebases that use the `relux-works` Relux stack:
 - `swiftui-relux` / product `SwiftUIRelux`
 - `swiftui-reluxrouter` / product `ReluxRouter`
 
-## Reference Routing
+## Resource Routing
 
-Load only the reference files needed for the task:
+Load only the files needed for the task.
 
-- Core state management, modules, actions, effects, reducers, sagas, flows:
-  read [references/relux-core.md](references/relux-core.md).
-- SwiftUI app/root integration, environment injection, async runtime resolution,
-  temporal flow state:
-  read [references/swiftui-relux.md](references/swiftui-relux.md).
+Instruction flows:
+
+- App composition, IoC, root runtime bootstrap:
+  read [instructions/app-bootstrap.md](instructions/app-bootstrap.md).
+- Feature module authoring, reducers, flows, tests, analytics:
+  read [instructions/module-authoring.md](instructions/module-authoring.md).
+- SwiftUI containers, views, temporal state, pull-to-refresh:
+  read [instructions/ui-integration.md](instructions/ui-integration.md).
+- Logout, session reset, store cleanup:
+  read [instructions/logout-cleanup.md](instructions/logout-cleanup.md).
+
+Reference sections:
+
+- Core state management, actions, effects, reducers, sagas, flows:
+  [references/core/relux-core.md](references/core/relux-core.md).
+- SwiftUI app/root integration, containers, local UI state, temporal state:
+  [references/swiftui/swiftui-relux.md](references/swiftui/swiftui-relux.md).
 - Navigation stacks, `Router`, `ProjectingRouter`, route actions:
-  read [references/relux-router.md](references/relux-router.md).
-- Feature module layout, namespace naming, reducers, flows, tests:
-  read [references/module-conventions.md](references/module-conventions.md).
+  [references/router/relux-router.md](references/router/relux-router.md).
+- Feature module layout, namespace naming, reducers, tests:
+  [references/modules/module-conventions.md](references/modules/module-conventions.md).
 - Swift package boundaries, public namespace facades, resources, tests:
-  read [references/package-conventions.md](references/package-conventions.md).
+  [references/packages/package-conventions.md](references/packages/package-conventions.md).
 - Skill scope, target libraries, current non-goals:
-  read [references/micro-spec.md](references/micro-spec.md).
+  [references/overview/micro-spec.md](references/overview/micro-spec.md).
+
+Reusable snippets:
+
+- [snippets/ioc-registry.md](snippets/ioc-registry.md)
+- [snippets/store-cleanup.md](snippets/store-cleanup.md)
+- [snippets/swiftui-container-page.md](snippets/swiftui-container-page.md)
+- [snippets/temporal-state.md](snippets/temporal-state.md)
+- [snippets/refreshable-perform-async.md](snippets/refreshable-perform-async.md)
+- [snippets/product-analytics.md](snippets/product-analytics.md)
+- [snippets/localization.md](snippets/localization.md)
 
 ## Default Workflow
 
