@@ -5,9 +5,11 @@ description: >
   working with swift-relux, SwiftUIRelux, swiftui-reluxrouter, Relux modules,
   HybridState, BusinessState, UIState, Saga, Flow, Effect, Action, reducers,
   Relux.Resolver, reluxTemporal, SwiftUI Relux environment injection, Relux
-  navigation routers, or module/package conventions for Relux-based Swift apps.
+  navigation routers, typed product analytics metric trees, typed localization
+  access trees, or module/package conventions for Relux-based Swift apps.
   Russian triggers: релакс, свифт-релакс, релакс модуль, релакс роутер,
-  SwiftUI Relux, relux state, relux flow, relux saga.
+  метрики, продуктовая аналитика, локализация, SwiftUI Relux, relux state,
+  relux flow, relux saga.
 ---
 
 # Swift Relux
@@ -51,4 +53,3 @@ Load only the reference files needed for the task:
   real domain logic.
 - When changing behavior, add focused Swift Testing coverage for reducers,
   flow handling, module registration, or SwiftUI integration as appropriate.
-

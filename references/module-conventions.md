@@ -80,6 +80,88 @@ Recommended layout:
 - Avoid shipping `testAction`, `placeholderEffect`, or similar names beyond
   temporary local scaffolding.
 
+## Product Metrics
+
+- Keep product analytics definitions in a module-local typed tree, usually
+  `<Module>+Analytics.swift`.
+- Put raw collector/event construction helpers in the analytics package or
+  product analytics facade. Do not build ad hoc event payloads inside SwiftUI
+  button bodies, reducers, or flow methods.
+- Use `extension <Module> { enum Analytics { ... } }` for app feature modules.
+- Add a short module-local typealias when the analytics event type is verbose.
+- Mirror product hierarchy with nested enums for screens, widgets, popups,
+  cards, or flow steps.
+- Centralize screen names in a nested `Screen` enum when a module owns multiple
+  surfaces.
+- Use `static let` for fixed metrics and `static func` for metrics that need
+  runtime context.
+- Keep call sites declarative: views and flows should say what happened, not
+  how the collector payload is shaped.
+
+Recommended shape:
+
+```swift
+extension Profiles {
+    enum Analytics {
+        typealias Event = ProductAnalytics.Event
+
+        enum Screen: String {
+            case profileSelector = "/profiles"
+            var name: String { rawValue }
+        }
+
+        enum ProfileSelector {
+            private static let screenName = Screen.profileSelector.name
+
+            static let screenAppear = Event.screenAppearance(screenName: screenName)
+
+            static func selectProfile(_ profile: String) -> Event {
+                Event.tapElement(
+                    screenName: screenName,
+                    eventCategory: "profiles",
+                    eventLabel: profile.analyticsLabel,
+                    eventContent: "status"
+                )
+            }
+        }
+    }
+}
+```
+
+Call sites:
+
+```swift
+ProfileSelectorView()
+    .trackAppearance(event: Profiles.Analytics.ProfileSelector.screenAppear)
+
+Button {
+    trackEvent(Profiles.Analytics.ProfileSelector.selectProfile(profile.name))
+} label: {
+    Text(title)
+}
+```
+
+For Relux effect-based analytics packages, the typed tree should return the
+public event model used by the effect API:
+
+```swift
+extension Checkout {
+    enum Analytics {
+        enum Payment {
+            static func started(spanID: AnalyticsSDK.SpanID) -> AnalyticsSDK.Event {
+                .continuous(.start(.init(
+                    name: "payment_started",
+                    finishEventName: "payment_finished",
+                    spanID: spanID,
+                    staleTimeout: 30,
+                    parameters: ["screen": .string("checkout")]
+                )))
+            }
+        }
+    }
+}
+```
+
 ## Flow
 
 - Prefer `Relux.Flow` when the caller may need success/failure, navigation,

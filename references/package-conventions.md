@@ -45,6 +45,63 @@
 - Split localization accessors by feature or surface.
 - Resolve package strings with `String(localized: ..., bundle: .module)` so
   resources come from the SwiftPM module bundle.
+- For app targets, a root `loc` namespace is also acceptable when that is the
+  established local convention. Extend it per feature in
+  `<Module>+Localization.swift`.
+- Mirror the product UI hierarchy with nested enums, not flat key bags.
+- Keep the table name near the feature namespace.
+- Use `static let` for fixed strings and `static func` for interpolated or
+  pluralized strings.
+- Views, reducers, and flows should reference typed accessors such as
+  `loc.profiles.management.header`, never raw keys like
+  `"loc.profiles.management.header"`.
+
+App target shape:
+
+```swift
+enum loc {}
+
+extension loc {
+    enum profiles {
+        private static let table = "LocalizableProfiles"
+
+        enum management {
+            static let header = String(
+                localized: "loc.profiles.management.header",
+                table: table,
+                bundle: nil,
+                comment: ""
+            )
+
+            static func removeMessage(_ profile: String) -> String {
+                String(
+                    localized: "loc.profiles.management.remove_message(profile: \(profile))",
+                    table: table,
+                    bundle: nil,
+                    comment: ""
+                )
+            }
+        }
+    }
+}
+```
+
+SwiftPM package shape:
+
+```swift
+enum l10n {
+    enum onboarding {
+        private static let table = "LocalizableOnboarding"
+
+        static let title = String(
+            localized: "l10n.onboarding.title",
+            table: table,
+            bundle: .module,
+            comment: ""
+        )
+    }
+}
+```
 
 ## Tests
 
@@ -57,4 +114,3 @@
 - Do not add platform availability annotations only to silence host test issues.
 - For iOS-only package products, verify through Xcode/Tuist iOS builds or iOS
   test plans when `swift test` compiles against the wrong host SDK.
-
