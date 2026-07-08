@@ -53,6 +53,7 @@ Reference sections:
 Reusable snippets:
 
 - [snippets/ioc-registry.md](snippets/ioc-registry.md)
+- [snippets/modular-projecting-router.md](snippets/modular-projecting-router.md)
 - [snippets/store-cleanup.md](snippets/store-cleanup.md)
 - [snippets/swiftui-container-page.md](snippets/swiftui-container-page.md)
 - [snippets/temporal-state.md](snippets/temporal-state.md)

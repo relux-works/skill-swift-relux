@@ -17,16 +17,26 @@ The skill should help agents:
 
 ## Target Libraries
 
-- `github.com/relux-works/swift-relux`
+- [swift-relux](https://github.com/relux-works/swift-relux)
   - Swift concurrency-oriented unidirectional data flow library.
   - Product/module: `Relux`.
-- `github.com/relux-works/swiftui-relux`
+- [swiftui-relux](https://github.com/relux-works/swiftui-relux)
   - SwiftUI integration helpers for Relux runtime resolution, environment
     injection, and temporal state connection.
   - Product/module: `SwiftUIRelux`.
-- `github.com/relux-works/swiftui-reluxrouter`
+- [swiftui-reluxrouter](https://github.com/relux-works/swiftui-reluxrouter)
   - SwiftUI navigation routers under `Relux.Navigation`.
   - Product/module: `ReluxRouter`.
+
+## Example Repositories
+
+- [swiftui-reluxrouter-sample](https://github.com/relux-works/swiftui-reluxrouter-sample)
+  shows an iOS app scaffold using `ios-app-manager`, `Relux.Resolver`,
+  app-level `ProjectingRouter`, module-local route handlers, generic
+  `Relux.NavigationLink`, native `NavigationLink(value:)`, and UI tests for
+  projected mixed navigation.
+- [swiftui-reluxrouter](https://github.com/relux-works/swiftui-reluxrouter)
+  contains the router SDK, projection tests, and package README.
 
 ## Initial Use Cases
 
@@ -48,4 +58,3 @@ The skill should help agents:
 - Do not prescribe one global app composition model for every Relux app.
 - Do not duplicate full API docs; keep this skill as a compact agent workflow
   guide with references to local package source when exact signatures matter.
-
