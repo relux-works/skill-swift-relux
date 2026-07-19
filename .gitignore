@@ -8,3 +8,12 @@ Derived/
 *.xcworkspace
 Package.resolved
 
+# Project-local agents-infra runtime; keep only authored project policy.
+.agents/*
+!.agents/.configs/
+.agents/.configs/*
+!.agents/.configs/project-config.toml
+.claude/
+.codex/
+.local/
+AGENTS.md

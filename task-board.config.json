@@ -4,6 +4,18 @@
     "board_dir": ".task-board"
   },
   "spawn": {
-    "max_parallel": 20
+    "enabled": true,
+    "max_parallel": 20,
+    "ceilings": {
+      "codex": {
+        "model": "gpt-5.6-sol",
+        "model_criterion": "less_or_equal",
+        "reasoning_effort": "xhigh"
+      },
+      "claude": {
+        "model": "claude-fable-5",
+        "model_criterion": "equal"
+      }
+    }
   }
 }

@@ -9,6 +9,21 @@ CLAUDE_DIR="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
 CODEX_DIR="${CODEX_SKILLS_DIR:-$HOME/.codex/skills}"
 INSTALL_STATE_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/swift-relux-skill"
 INSTALL_STATE="$INSTALL_STATE_DIR/install.json"
+VERIFY_ONLY=0
+
+RUNTIME_EXCLUDES=(
+  --exclude='.git'
+  --exclude='.gitignore'
+  --exclude='.gitattributes'
+  --exclude='.gitmodules'
+  --exclude='.task-board'
+  --exclude='.temp'
+  --exclude='.DS_Store'
+  --exclude='README.md'
+  --exclude='task-board.config.json'
+  --exclude='setup.sh'
+  --exclude='tests'
+)
 
 red() { print -P "%F{red}$1%f" }
 green() { print -P "%F{green}$1%f" }
@@ -49,16 +64,7 @@ install_skill_copy() {
   fi
 
   mkdir -p "$agents_dest"
-  rsync -a --delete "$SKILL_DIR/" "$agents_dest/" \
-    --exclude='.git' \
-    --exclude='.gitignore' \
-    --exclude='.gitattributes' \
-    --exclude='.gitmodules' \
-    --exclude='.task-board' \
-    --exclude='.temp' \
-    --exclude='task-board.config.json' \
-    --exclude='setup.sh' \
-    --exclude='.DS_Store'
+  rsync -a --delete "${RUNTIME_EXCLUDES[@]}" "$SKILL_DIR/" "$agents_dest/"
 
   scrub_git_metadata "$agents_dest"
   green "Copied skill -> $agents_dest/"
@@ -104,48 +110,86 @@ EOF
 
 verify_install() {
   local agents_dest="$AGENTS_DIR/$SKILL_NAME"
+  local drift
 
   if [[ ! -f "$agents_dest/SKILL.md" ]]; then
     red "Install verification failed: missing $agents_dest/SKILL.md"
     exit 1
   fi
 
-  if [[ -e "$agents_dest/.git" || -e "$agents_dest/.gitignore" || -e "$agents_dest/task-board.config.json" ]]; then
-    red "Install verification failed: git/project metadata leaked into $agents_dest"
+  if [[ -e "$agents_dest/.git" || -e "$agents_dest/.gitignore" ||
+        -e "$agents_dest/task-board.config.json" || -e "$agents_dest/setup.sh" ||
+        -e "$agents_dest/README.md" || -e "$agents_dest/tests" ]]; then
+    red "Install verification failed: source-repository files leaked into $agents_dest"
     exit 1
   fi
 
-  if [[ ! -L "$CLAUDE_DIR/$SKILL_NAME" ]]; then
-    red "Install verification failed: missing Claude symlink"
+  drift="$(rsync -ainc --delete "${RUNTIME_EXCLUDES[@]}" "$SKILL_DIR/" "$agents_dest/")"
+  if [[ -n "$drift" ]]; then
+    red "Install verification failed: installed runtime copy differs from source"
+    print -r -- "$drift"
     exit 1
   fi
 
-  if [[ ! -L "$CODEX_DIR/$SKILL_NAME" ]]; then
-    red "Install verification failed: missing Codex symlink"
+  local resource relative_resource
+  while IFS= read -r resource; do
+    relative_resource="${resource%%#*}"
+    [[ -z "$relative_resource" ]] && continue
+    case "$relative_resource" in
+      http:*|https:*|mailto:*) continue ;;
+    esac
+    if [[ ! -e "$agents_dest/$relative_resource" ]]; then
+      red "Install verification failed: SKILL.md resource is missing: $relative_resource"
+      exit 1
+    fi
+  done < <(grep -Eo '\]\([^)]+' "$agents_dest/SKILL.md" | sed 's/^](//')
+
+  if [[ ! -L "$CLAUDE_DIR/$SKILL_NAME" || "$(readlink "$CLAUDE_DIR/$SKILL_NAME")" != "$agents_dest" ]]; then
+    red "Install verification failed: Claude skill is not linked to $agents_dest"
     exit 1
   fi
 
-  green "Verified installed skill: $agents_dest"
+  if [[ ! -L "$CODEX_DIR/$SKILL_NAME" || "$(readlink "$CODEX_DIR/$SKILL_NAME")" != "$agents_dest" ]]; then
+    red "Install verification failed: Codex skill is not linked to $agents_dest"
+    exit 1
+  fi
+
+  green "Verified complete standalone skill copy: $agents_dest"
 }
 
 usage() {
-  print "Usage: ./setup.sh"
+  print "Usage: ./setup.sh [--verify-only]"
   print ""
-  print "Installs $SKILL_NAME as a degitized copy into ~/.agents/skills and"
+  print "Installs $SKILL_NAME as a degitized, source-independent copy into ~/.agents/skills and"
   print "refreshes ~/.claude/skills and ~/.codex/skills symlinks."
+  print "Use --verify-only to check an existing installed copy without repairing it."
 }
 
-if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
-  usage
-  exit 0
-fi
+case "${1:-}" in
+  --verify-only)
+    VERIFY_ONLY=1
+    ;;
+  --help|-h)
+    usage
+    exit 0
+    ;;
+  "")
+    ;;
+  *)
+    red "Unknown argument: $1"
+    usage
+    exit 1
+    ;;
+esac
 
 print ""
 green "=== swift-relux skill setup ==="
 print ""
-install_skill_copy
-install_symlinks
-write_install_state
+if (( ! VERIFY_ONLY )); then
+  install_skill_copy
+  install_symlinks
+  write_install_state
+fi
 verify_install
 print ""
 green "=== Done ==="
