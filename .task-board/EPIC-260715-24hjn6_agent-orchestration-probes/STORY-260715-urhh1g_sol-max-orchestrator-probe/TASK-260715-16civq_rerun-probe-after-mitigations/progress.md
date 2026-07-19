@@ -1,5 +1,5 @@
 ## Status
-done
+closed
 
 ## Review
 required
@@ -14,7 +14,7 @@ claude-fable-main-session
 2026-07-15T09:07:35Z
 
 ## Last Update
-2026-07-20T14:30:42Z
+2026-07-20T15:14:10Z
 
 ## Blocked By
 - TASK-260715-1wqpkq
@@ -33,6 +33,7 @@ claude-fable-main-session
 
 ## Notes
 Independent evidence re-review accepted after durable-ledger and provenance rework. Reviewer matched all 13 run rows to retained state files, confirmed final 1/4/5 done board counts, and reran go test/vet successfully.
+CLOSE REASON: Mis-scoped cross-project research. This rerun validates skill-project-management mitigations and does not belong to the swift-relux product backlog. Retained as historical evidence only; canonical ownership is skill-project-management.
 
 ## Precondition Resources
 (none)

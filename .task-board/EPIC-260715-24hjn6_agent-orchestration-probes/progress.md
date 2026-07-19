@@ -14,7 +14,7 @@ research
 2026-07-15T09:07:06Z
 
 ## Last Update
-2026-07-20T14:30:42Z
+2026-07-20T15:14:21Z
 
 ## Blocked By
 - (none)
@@ -29,6 +29,7 @@ research
 (empty)
 
 ## Notes
+CLOSE REASON: Cross-project epic was created on the wrong board. Canonical ownership is skill-project-management; swift-relux retains this subtree only as archived historical evidence and must not schedule work from it.
 
 ## Precondition Resources
 (none)

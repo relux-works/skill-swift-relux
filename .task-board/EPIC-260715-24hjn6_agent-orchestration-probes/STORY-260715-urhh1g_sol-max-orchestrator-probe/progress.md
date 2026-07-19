@@ -14,7 +14,7 @@ research
 2026-07-15T09:07:13Z
 
 ## Last Update
-2026-07-20T14:30:42Z
+2026-07-20T15:14:21Z
 
 ## Blocked By
 - (none)
@@ -29,6 +29,7 @@ research
 (empty)
 
 ## Notes
+CLOSE REASON: Entire story belongs to the skill-project-management orchestration-efficiency investigation, not swift-relux. No further work is permitted in this repository backlog.
 
 ## Precondition Resources
 (none)

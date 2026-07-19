@@ -1,5 +1,5 @@
 ## Status
-done
+closed
 
 ## Review
 required
@@ -14,7 +14,7 @@ claude-fable-main-session
 2026-07-15T09:07:25Z
 
 ## Last Update
-2026-07-20T14:29:47Z
+2026-07-20T15:14:10Z
 
 ## Blocked By
 - (none)
@@ -29,6 +29,7 @@ claude-fable-main-session
 (empty)
 
 ## Notes
+CLOSE REASON: Mis-scoped cross-project research. This probe evaluates task-board/project-management orchestration and does not belong to the swift-relux product backlog. Retained as historical evidence only; canonical ownership is skill-project-management.
 
 ## Precondition Resources
 (none)
