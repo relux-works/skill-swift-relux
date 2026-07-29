@@ -91,6 +91,28 @@ This keeps dependency ownership explicit:
   built;
 - previews/tests can replace registry builders or construct modules directly.
 
+## Concurrency Isolation
+
+Treat Swift concurrency isolation as an architectural boundary, not as a
+late compiler-cleanup exercise.
+
+- `Relux.Saga` and `Relux.Flow` are actor protocols; implement them as actors.
+- Prefer actors for stateful asynchronous dependencies such as services,
+  fetchers, repositories, caches, session providers, and storage adapters.
+  Serialized ownership lets the compiler reject unsafe cross-task mutation.
+- Make cross-task protocols and transferred values `Sendable`.
+- Keep immutable/stateless implementations as structs when they do not own
+  mutable state or coordinate concurrent work. Do not create actors only to
+  satisfy a naming convention.
+- Use `@MainActor` for SwiftUI/UIKit/AppKit ownership and for adapters around
+  synchronous third-party APIs whose contract requires main-thread access.
+  This includes specific WebRTC or Unity bridges when their integration
+  contract is main-thread-bound, not every use of those technologies.
+- Keep `@MainActor` at the thread-constrained boundary. Do not pull unrelated
+  business state, networking, persistence, or orchestration onto the main actor.
+- Treat `@unchecked Sendable`, manual locks, and shared mutable classes as
+  reviewed exceptions with an explicit synchronization invariant.
+
 ## Reducers
 
 - `State.reduce(with:)` should type-match the module action and delegate to an
@@ -155,15 +177,49 @@ await action {
 }
 ```
 
-Both helpers route through `Relux.shared.dispatcher` by default. When a concrete
-runtime is already in hand, prefer its dispatcher to avoid hidden global
-coupling:
+Use the top-level `action` and `actions` helpers as the canonical application
+dispatch API. They route through `Relux.shared.dispatcher`, which is the
+application event bus. A concrete `Relux` value being in scope does not change
+that priority; do not switch to `relux.dispatcher` merely because a resolver,
+environment, or callback exposes the runtime.
+
+Inside a `Relux.Saga` or `Relux.Flow`, the unqualified instance helpers with
+the same names route through `self.dispatcher`. This preserves an injected
+dispatcher in isolated tests while keeping application call sites on the same
+`action`/`actions` vocabulary.
+
+Call `relux.dispatcher.action(s)` or `dispatcher.action(s)` directly only when
+the exact runtime or event bus is part of the boundary contract:
+
+- a host/library lifecycle adapter must await its `ReluxProvider` before
+  dispatching;
+- an isolated integration test constructs and injects the dispatcher whose
+  logger it asserts.
+
+SwiftUI temporal attachment is not a direct-dispatch exception.
+`.reluxTemporal(state:)` resolves Relux from the view environment internally;
+the canonical view call site does not use a runtime or dispatcher.
 
 ```swift
-await relux.dispatcher.actions {
-    App.Effect.start
+protocol ReluxProvider: Sendable {
+    @MainActor
+    func resolveRelux() async -> Relux
+}
+
+@MainActor
+func handleApplicationOpen(using provider: any ReluxProvider) async {
+    let relux = await provider.resolveRelux()
+
+    await relux.dispatcher.action {
+        EmbeddedFeature.Effect.handleApplicationOpen
+    }
 }
 ```
+
+Make ownership explicit through a runtime provider or dispatcher injection.
+Runtime availability alone is not a reason to use the direct dispatcher API.
+See [../../snippets/dispatch-runtime-selection.md](../../snippets/dispatch-runtime-selection.md)
+for primary-runtime, saga/flow, host-provider, and integration-test examples.
 
 Use `performAsync { ... }` from synchronous call sites such as SwiftUI `Button`
 actions, gesture handlers, `.refreshable`, or view helper closures. It creates a
@@ -184,6 +240,8 @@ failures remain observable. The important SwiftUI exception is `.refreshable`:
 do not tie SwiftUI pull-to-refresh to a slow awaited Relux action; see
 [../swiftui/swiftui-relux.md](../swiftui/swiftui-relux.md) and
 [../../snippets/refreshable-perform-async.md](../../snippets/refreshable-perform-async.md).
+`performAsync` targets `Relux.shared`; do not use it when an exact
+provider-owned runtime or injected dispatcher must receive the event.
 
 ## Flow And Saga
 
@@ -205,7 +263,15 @@ do not tie SwiftUI pull-to-refresh to a slow awaited Relux action; see
 - `apply(_:)` should switch on `effect as? <Module>.Effect`.
 - Return `.success` for foreign effects.
 - Delegate real effect cases to private methods once logic appears.
-- Dispatch follow-up state changes via `await actions { <Module>.Action... }`.
+- Dispatch follow-up state changes via the inherited `await action` or
+  `await actions` helper. On a flow or saga, these helpers use its injected
+  `dispatcher`.
+- Do not inject a view-owned temporal `HybridState` as a flow/saga dependency.
+  Relux does not currently expose a stable runtime accessor for connected
+  temporal state. Carry immutable `Sendable` input in the effect/action or use
+  a lifecycle-stable business/service dependency. A future runtime state
+  accessor may materialize connected temporal state once lookup, absence,
+  lifetime, and actor-isolation semantics are defined.
 - Never mutate `BusinessState`, `HybridState`, or `UIState` directly from a flow
   or saga. Direct writes bypass reducers and break Relux's unidirectional data
   flow; emit actions and let reducers own all state transitions.

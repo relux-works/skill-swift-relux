@@ -1,0 +1,46 @@
+{
+  "contract_version": "board-goal-v2",
+  "goal_id": "PRIMARY-GOAL-260730-62m0mt",
+  "revision": 1,
+  "expected_previous_revision": 2,
+  "previous_ref": {
+    "id": "PRIMARY-GOAL-260730-1kthcl",
+    "revision": 2
+  },
+  "owner": {
+    "kind": "parent",
+    "id": "primary"
+  },
+  "kind": "alignment",
+  "objective": "Correct the Swift Relux skill so ordinary application call sites use top-level await action/actions helpers even when a Relux runtime is available, reserve direct dispatcher use for explicitly injected dispatcher dependencies or infrastructure boundaries, align affected examples, and validate the rule against relux-works/relux-sample.",
+  "scope": {
+    "requested_ids": null,
+    "resolved_leaf_items": null
+  },
+  "mutation_authority": "agent_discretion",
+  "success_predicate": "alignment_handled",
+  "provider_condition": "The bound parent session has handled this exact alignment revision.",
+  "native_reflection": "required",
+  "state": "active",
+  "legacy_refs": [
+    {
+      "contract": "primary-goal-v1",
+      "id": "PRIMARY-GOAL-260730-62m0mt",
+      "revision": 1
+    }
+  ],
+  "role_policy": {},
+  "mutation": {
+    "kind": "created",
+    "reason": "User reported that ambiguous runtime-availability guidance causes generated project code to call relux.dispatcher.action instead of the canonical action helper",
+    "actor_context": {
+      "kind": "agent",
+      "actor_id": "alexis"
+    },
+    "authority": "agent_discretion"
+  },
+  "created_at": "2026-07-30T08:55:04.761607Z",
+  "updated_at": "2026-07-30T08:55:04.761607Z",
+  "created_by": "alexis",
+  "reason": "User reported that ambiguous runtime-availability guidance causes generated project code to call relux.dispatcher.action instead of the canonical action helper"
+}

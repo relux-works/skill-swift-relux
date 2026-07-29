@@ -52,6 +52,7 @@ Reference sections:
 
 Reusable snippets:
 
+- [snippets/dispatch-runtime-selection.md](snippets/dispatch-runtime-selection.md)
 - [snippets/ioc-registry.md](snippets/ioc-registry.md)
 - [snippets/modular-projecting-router.md](snippets/modular-projecting-router.md)
 - [snippets/store-cleanup.md](snippets/store-cleanup.md)
@@ -68,6 +69,29 @@ Reusable snippets:
 - Prefer existing package and namespace patterns over creating a new local style.
 - Keep state changes in reducers. Do not mutate Relux state directly from flows.
 - Model side effects as `Effect` handled by `Flow` or `Saga`.
+- Choose dispatch APIs by runtime identity, not reachability. Use top-level
+  `action` / `actions` for the initialized primary runtime, use unqualified
+  instance helpers inside `Saga` / `Flow`, and target an explicit
+  `Relux` / `Dispatcher` only when a host-library lifecycle integration
+  supplies the exact runtime or an isolated integration test owns its
+  dispatcher/logger event bus.
+- Attach SwiftUI temporal state with `.reluxTemporal(state:)`. The modifier
+  resolves Relux from the SwiftUI environment; do not pass or use a runtime
+  instance at the view call site merely to connect temporal state.
+- Do not inject view-owned temporal state into a `Flow`. It is not currently a
+  stable runtime-resolvable dependency; carry immutable `Sendable` input until
+  a future runtime state accessor defines lookup and lifetime semantics.
+- Prefer actor isolation for flows, sagas, and stateful asynchronous
+  dependencies such as services, fetchers, repositories, caches, and storage
+  adapters. Keep immutable/stateless implementations as value types when they
+  own no serialized mutable state.
+- Use `@MainActor` for UI/platform ownership and for adapters around synchronous
+  third-party APIs that require main-thread access, including specific WebRTC
+  or Unity bridges when their contracts demand it. Keep isolation at that
+  boundary instead of spreading it through unrelated business code.
+- Make cross-task protocols and values `Sendable`; treat
+  `@unchecked Sendable`, locks, and shared mutable classes as reviewed
+  exceptions rather than defaults.
 - Use `HybridState` for simple SwiftUI-observed features; split into
   `BusinessState` plus `UIState` when business data is shared, transformed, or
   aggregated across domains.

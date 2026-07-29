@@ -46,7 +46,9 @@ The skill should help agents:
 - Add or review a reducer.
 - Add or review a flow/saga handling asynchronous effects.
 - Connect a SwiftUI root through `Relux.Resolver`.
-- Connect modal or wizard state through `reluxTemporal(state:)`.
+- Connect view-owned modal or wizard state through
+  `.reluxTemporal(state:)`, using the Relux runtime already supplied by the
+  SwiftUI environment.
 - Configure navigation through `Relux.Navigation.Router` or
   `Relux.Navigation.ProjectingRouter`.
 - Review a Relux package boundary or public namespace facade.

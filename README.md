@@ -53,6 +53,7 @@ Reference packs:
 
 Reusable snippets:
 
+- `snippets/dispatch-runtime-selection.md`
 - `snippets/ioc-registry.md`
 - `snippets/modular-projecting-router.md`
 - `snippets/store-cleanup.md`

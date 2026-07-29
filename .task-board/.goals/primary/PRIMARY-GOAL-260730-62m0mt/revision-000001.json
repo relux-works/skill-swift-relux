@@ -1,0 +1,24 @@
+{
+  "contract": "primary-goal-v1",
+  "id": "PRIMARY-GOAL-260730-62m0mt",
+  "revision": 1,
+  "predecessor_ref": {
+    "id": "PRIMARY-GOAL-260730-1kthcl",
+    "revision": 2
+  },
+  "state": "active",
+  "scope": {
+    "kind": "board"
+  },
+  "objective": "Correct the Swift Relux skill so ordinary application call sites use top-level await action/actions helpers even when a Relux runtime is available, reserve direct dispatcher use for explicitly injected dispatcher dependencies or infrastructure boundaries, align affected examples, and validate the rule against relux-works/relux-sample.",
+  "mutation": {
+    "kind": "created",
+    "reason": "User reported that ambiguous runtime-availability guidance causes generated project code to call relux.dispatcher.action instead of the canonical action helper",
+    "actor": {
+      "kind": "primary_parent",
+      "actor_id": "alexis"
+    }
+  },
+  "created_at": "2026-07-30T08:55:04.761607Z",
+  "updated_at": "2026-07-30T08:55:04.761607Z"
+}

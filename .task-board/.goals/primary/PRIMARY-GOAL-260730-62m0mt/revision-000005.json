@@ -1,0 +1,21 @@
+{
+  "contract": "primary-goal-v1",
+  "id": "PRIMARY-GOAL-260730-62m0mt",
+  "revision": 5,
+  "previous_revision": 4,
+  "state": "cleared",
+  "scope": {
+    "kind": "board"
+  },
+  "objective": "Correct the Swift Relux skill with a runtime-identity-aware dispatch contract: use top-level await action/actions for the primary application runtime, use explicitly provided Relux/Dispatcher only for host-library lifecycle integrations and isolated integration tests, model SwiftUI temporal state as view-owned state connected declaratively to the environment Relux without direct runtime access at view call sites, document that temporal state is not currently a stable injectable Flow dependency and may later be materialized through a runtime state accessor, align evidence with swiftui-relux, relux-sample, and Swipe2Cash, and retain global actor-first/MainActor/Sendable isolation guidance.",
+  "mutation": {
+    "kind": "cleared",
+    "reason": "Objective achieved: canonical runtime dispatch, declarative temporal ownership and Flow limitation, three-repository evidence, global isolation guidance, and source-installed validation are complete.",
+    "actor": {
+      "kind": "primary_parent",
+      "actor_id": "alexis"
+    }
+  },
+  "created_at": "2026-07-30T08:55:04.761607Z",
+  "updated_at": "2026-07-30T09:30:15.551583Z"
+}

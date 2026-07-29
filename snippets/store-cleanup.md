@@ -13,14 +13,14 @@ await store.cleanup(exclusions: [
 Logout should route away from product views before cleanup.
 
 ```swift
-await dispatcher.actions {
+await action {
     AppRouter.Action.set([.auth(state: .logoutInProgress)])
 }
 
 await sessionService.logout()
 await store.cleanup(exclusions: [AppRouter.self])
 
-await dispatcher.actions {
+await action {
     AppRouter.Action.set([.auth(state: .initial)])
 }
 ```

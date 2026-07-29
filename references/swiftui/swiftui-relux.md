@@ -24,13 +24,14 @@ After resolution, `Relux.Resolver`:
 - keeps the splash visible until the runtime exists.
 
 The resolver closure must only build/resolve and return the `Relux` runtime.
-Do not dispatch startup actions/effects from inside the resolver closure:
+Do not dispatch ordinary primary-runtime startup actions/effects from inside
+the resolver closure:
 
 ```swift
 Relux.Resolver(
     splash: Splash.init,
-    content: { relux in
-        AppContent(relux: relux)
+    content: { _ in
+        AppContent()
     },
     resolver: {
         await Registry.resolveAsync(Relux.self)
@@ -44,12 +45,10 @@ Startup dispatch belongs in the rendered content, usually in `.task`, after
 
 ```swift
 struct AppContent: View {
-    let relux: Relux
-
     var body: some View {
         RootView()
             .task {
-                await relux.dispatcher.actions {
+                await actions {
                     App.Effect.start
                     Auth.Effect.restoreSession
                 }
@@ -57,6 +56,21 @@ struct AppContent: View {
     }
 }
 ```
+
+Use the top-level `action`/`actions` helpers for ordinary SwiftUI dispatch,
+including rendered startup tasks and containers. `Relux.Resolver` exposing a
+concrete runtime does not by itself make `relux.dispatcher` the preferred
+dispatch API. Read the runtime from the environment when a view actually needs
+runtime-owned facilities such as the store, not merely to choose a dispatch
+path.
+
+Runtime identity does matter at explicit boundaries. A host/library lifecycle
+adapter must await its `ReluxProvider` and dispatch through the resolved
+runtime. When resolving the exact runtime and bootstrapping an embedded library
+are one host-owned operation, that bootstrap may dispatch through the resolved
+runtime before returning it; do not copy that ordering into an ordinary app
+startup task or temporal-state view. See
+[../../snippets/dispatch-runtime-selection.md](../../snippets/dispatch-runtime-selection.md).
 
 This ordering matters. If startup actions mutate state or switch navigation
 while the resolver is still resolving, SwiftUI has not yet received the Relux
@@ -68,6 +82,10 @@ Views rendered below `Relux.Resolver` can read:
 ```swift
 @Environment(\.relux) private var relux
 ```
+
+Use that access only for a custom composition/infrastructure surface that
+actually owns runtime facilities. Ordinary dispatch and temporal-state
+connection do not require it.
 
 Use the public `.relux(_:)` modifier for custom composition surfaces, previews,
 tests, or presentation paths that are not rendered under `Relux.Resolver`:
@@ -84,8 +102,10 @@ In SwiftUI apps, keep synchronous platform bootstrap in `App.init` or an
 
 - configure UIKit appearance, fonts, SDK global flags, and automation switches;
 - call the IoC registry setup, for example `Registry.configure()`;
-- avoid async Relux dispatch from `init`/AppDelegate callbacks unless the UI
-  hierarchy is already rendered and connected to Relux.
+- defer ordinary startup dispatch until the UI hierarchy is rendered and
+  connected to Relux;
+- when a host/library lifecycle callback owns a `ReluxProvider` contract, await
+  that provider and dispatch through its exact runtime.
 
 The app entry point should hand runtime construction to `Relux.Resolver`:
 
@@ -100,7 +120,7 @@ struct DemoApp: App {
         WindowGroup {
             Relux.Resolver(
                 splash: Splash.init,
-                content: { relux in AppContent(relux: relux) },
+                content: { _ in AppContent() },
                 resolver: { await Registry.resolveAsync(Relux.self) }
             )
         }
@@ -215,6 +235,56 @@ Ownership ladder:
   survive presentation changes -> Relux `HybridState`, `BusinessState`, or
   `UIState`.
 
+## Temporal State
+
+Temporal state is presentation-scoped `HybridState`. The SwiftUI container
+owns it strongly and connects it declaratively to the `Relux` already present
+in the environment:
+
+```swift
+struct MoneyTransferContainer: View {
+    @StateObject private var state = MoneyTransfer.State()
+
+    var body: some View {
+        MoneyTransferPage(
+            amount: state.amount,
+            onAmountChanged: { amount in
+                performAsync {
+                    MoneyTransfer.Action.setAmount(amount)
+                }
+            }
+        )
+        .reluxTemporal(state: state)
+    }
+}
+```
+
+The `.reluxTemporal(state:)` modifier reads `@Environment(\.relux)` internally
+and connects the state to that runtime's store. The call site should not retain
+or read `Relux`, call `relux.store.connectTemporally`, or use `onConnect` to
+obtain a dispatcher. Primary-runtime view events still use top-level
+`action` / `actions` or `performAsync`.
+
+The store holds connected temporal state through a weak reference, so the
+view/container remains its lifetime owner. Do not call `cleanup()` or add an
+explicit disconnect when the view disappears; releasing the view-owned state
+ends that lifetime. Temporal state is not currently a stable injectable `Flow`
+dependency:
+
+- injecting the object lets the flow retain presentation-scoped state beyond
+  the view lifecycle;
+- the current public state lookup reads registered business/UI state and does
+  not provide a temporal-state accessor;
+- flows that need view input should receive immutable `Sendable` values in
+  their effect/action or use a lifecycle-stable business/service dependency.
+
+A future runtime state accessor may materialize the connected temporal state
+for effect handling once lookup, absence, lifetime, and actor-isolation
+semantics are explicit. Treat that as a future API direction; do not emulate it
+today with direct environment-runtime or store access from the view.
+
+See [../../snippets/temporal-state.md](../../snippets/temporal-state.md).
+
 ## Pull To Refresh
 
 SwiftUI `.refreshable` can keep its refresh lifecycle stale when the closure
@@ -251,34 +321,3 @@ Keep the `logoutInProgress` screen small:
 - keep long-running teardown work in a saga/flow, not in the view task itself;
 - exclude only app-shell states that must survive cleanup, such as routers or
   app configuration.
-
-## Temporal State
-
-For wizard-style or modal flows, keep temporal state owned by the SwiftUI
-container and connect it to the current `Relux.Store`. See
-[../../snippets/temporal-state.md](../../snippets/temporal-state.md) for
-attachment examples.
-
-Use temporal state for short-lived interaction state that belongs to the
-currently rendered container rather than to durable product state: wizard step
-drafts, modal input, active gesture/session UI, camera/call preview controls,
-or other data that should disappear with the presentation. This keeps global
-Relux modules from accumulating screen-local scratch fields.
-
-Attach temporal state at the container boundary, not inside individual leaf
-views. When startup actions need the temporal state to already be registered,
-use `onConnect`.
-
-Rules:
-
-- `onConnect` runs only after the store registers and returns the connected
-  state.
-- `Relux.Store` stores temporal states weakly.
-- The SwiftUI container must own temporal state, usually with `@StateObject`.
-- When the container is dismissed, the temporal state can be released with it.
-- Do not pass temporal state into a long-lived `Flow` or `Saga` as a dependency
-  for later data reads. The state is weakly registered and presentation-scoped;
-  after dismissal, the object may be gone or no longer describe the active
-  product flow.
-- If a flow needs the value, pass a snapshot in the triggering effect/action or
-  promote the data to durable module state (`HybridState` or `BusinessState`).

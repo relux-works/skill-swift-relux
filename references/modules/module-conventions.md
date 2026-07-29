@@ -83,6 +83,23 @@ Recommended layout:
 - Do not mutate state directly from `Flow`; dispatch `Action` and let the
   reducer own mutation.
 
+## Concurrency Isolation
+
+- Treat actor isolation as the default for `Flow`, `Saga`, and stateful
+  asynchronous dependencies such as services, fetchers, repositories, caches,
+  session providers, and storage adapters.
+- Make dependency protocols `Sendable` when their values cross tasks or actor
+  boundaries.
+- Prefer immutable structs for stateless implementations that own no mutable
+  state and perform no serialized coordination.
+- Use `@MainActor` for SwiftUI/platform ownership and for adapter boundaries
+  around synchronous third-party APIs that require main-thread access, such as
+  a specific WebRTC or Unity bridge.
+- Keep main-actor isolation at that boundary; do not annotate unrelated
+  business, networking, or persistence graphs for convenience.
+- Avoid `@unchecked Sendable`, locks, and shared mutable classes when actor or
+  value isolation can express the ownership model.
+
 ## Actions And Effects
 
 - `Action: Relux.Action` is for pure state transitions.
@@ -135,7 +152,15 @@ for typed tree, call-site, and effect-based analytics examples.
   `case .none: .success`; do not introduce `guard` plus `internalApply` until
   real logic exists.
 - Delegate real effect cases to private methods once logic appears.
-- Dispatch follow-up state changes via `await actions { <Module>.Action... }`.
+- Dispatch follow-up state changes via the inherited `await action` or
+  `await actions` helper. On a flow or saga, these helpers use its injected
+  `dispatcher`; direct `dispatcher.action(s)` calls belong only to a
+  host-library lifecycle integration or isolated integration-test harness, not
+  ordinary flow logic.
+- Do not retain or inject view-owned temporal state in a flow/saga. The current
+  runtime has no stable accessor for connected temporal state; carry immutable
+  `Sendable` input in the effect/action or use a lifecycle-stable dependency
+  until such an accessor exists.
 - Mutating `BusinessState`, `HybridState`, or `UIState` from a flow/saga
   violates unidirectional data flow. Emit an action and let the reducer perform
   the transition instead.
@@ -160,6 +185,9 @@ for typed tree, call-site, and effect-based analytics examples.
 - Flow and saga tests should assert the observable contract of the effect:
   returned `Result`, dispatched follow-up actions/effects, service calls, and
   error/logger effects when those are part of the behavior.
+- For event-bus integration tests, construct `Relux.Dispatcher` with a testing
+  logger, inject it into the flow/saga, and assert the exact actions/effects
+  captured by that logger.
 - Add reducer tests once actions mutate state.
 - Avoid tests that lock in fake SDK/auth/product behavior before the real
   integration contract exists.

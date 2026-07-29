@@ -1,0 +1,46 @@
+{
+  "contract_version": "board-goal-v2",
+  "goal_id": "PRIMARY-GOAL-260730-62m0mt",
+  "revision": 5,
+  "expected_previous_revision": 4,
+  "previous_ref": {
+    "id": "PRIMARY-GOAL-260730-62m0mt",
+    "revision": 4
+  },
+  "owner": {
+    "kind": "parent",
+    "id": "primary"
+  },
+  "kind": "alignment",
+  "objective": "Correct the Swift Relux skill with a runtime-identity-aware dispatch contract: use top-level await action/actions for the primary application runtime, use explicitly provided Relux/Dispatcher only for host-library lifecycle integrations and isolated integration tests, model SwiftUI temporal state as view-owned state connected declaratively to the environment Relux without direct runtime access at view call sites, document that temporal state is not currently a stable injectable Flow dependency and may later be materialized through a runtime state accessor, align evidence with swiftui-relux, relux-sample, and Swipe2Cash, and retain global actor-first/MainActor/Sendable isolation guidance.",
+  "scope": {
+    "requested_ids": null,
+    "resolved_leaf_items": null
+  },
+  "mutation_authority": "agent_discretion",
+  "success_predicate": "alignment_handled",
+  "provider_condition": "The bound parent session has handled this exact alignment revision.",
+  "native_reflection": "required",
+  "state": "cleared",
+  "legacy_refs": [
+    {
+      "contract": "primary-goal-v1",
+      "id": "PRIMARY-GOAL-260730-62m0mt",
+      "revision": 5
+    }
+  ],
+  "role_policy": {},
+  "mutation": {
+    "kind": "cleared",
+    "reason": "Objective achieved: canonical runtime dispatch, declarative temporal ownership and Flow limitation, three-repository evidence, global isolation guidance, and source-installed validation are complete.",
+    "actor_context": {
+      "kind": "agent",
+      "actor_id": "alexis"
+    },
+    "authority": "agent_discretion"
+  },
+  "created_at": "2026-07-30T08:55:04.761607Z",
+  "updated_at": "2026-07-30T09:30:15.551583Z",
+  "created_by": "alexis",
+  "reason": "Objective achieved: canonical runtime dispatch, declarative temporal ownership and Flow limitation, three-repository evidence, global isolation guidance, and source-installed validation are complete."
+}

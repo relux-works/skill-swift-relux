@@ -1,0 +1,21 @@
+{
+  "contract": "primary-goal-v1",
+  "id": "PRIMARY-GOAL-260730-62m0mt",
+  "revision": 2,
+  "previous_revision": 1,
+  "state": "active",
+  "scope": {
+    "kind": "board"
+  },
+  "objective": "Correct the Swift Relux skill with a runtime-identity-aware dispatch contract: use top-level await action/actions for the default application runtime, use an explicitly provided Relux/Dispatcher for host-library integrations and isolated integration tests, align affected examples against relux-works/relux-sample and Swipe2Cash, and add actor-first Swift Concurrency guidance for flows, sagas, and stateful async services/fetchers/storage while preserving immutable/stateless value-type exceptions.",
+  "mutation": {
+    "kind": "objective_realigned",
+    "reason": "User added actor-isolation and strict-concurrency guidance to the dispatch-contract correction",
+    "actor": {
+      "kind": "primary_parent",
+      "actor_id": "alexis"
+    }
+  },
+  "created_at": "2026-07-30T08:55:04.761607Z",
+  "updated_at": "2026-07-30T08:58:15.054723Z"
+}

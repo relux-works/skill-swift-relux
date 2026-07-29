@@ -38,6 +38,25 @@
   instead of exposing their own module name when the facade deliberately
   re-exports them.
 
+## Concurrency Boundaries
+
+- Make public protocols `Sendable` when services, fetchers, repositories,
+  caches, session providers, or storage adapters cross task/actor boundaries.
+- Prefer actor implementations when those dependencies own mutable state,
+  serialize requests, cache results, coordinate subscriptions, or manage
+  lifecycle.
+- Keep immutable/stateless implementations as structs when no serialized
+  mutable ownership is required.
+- Keep DTOs, domain models, configuration, and callback payloads `Sendable`
+  across package concurrency boundaries.
+- Use `@MainActor` on public requirements or adapter implementations that wrap
+  synchronous UI/platform or third-party main-thread-only APIs. This includes
+  specific WebRTC or Unity bridges when their integration contract requires it.
+- Isolate only the constrained adapter surface. Do not make an entire package
+  or unrelated business dependency graph main-actor-bound for convenience.
+- Treat `@unchecked Sendable` and manual synchronization as explicit,
+  documented exceptions.
+
 ## Localization
 
 - Keep localization access behind an internal `l10n` namespace.

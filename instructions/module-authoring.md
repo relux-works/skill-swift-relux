@@ -16,5 +16,14 @@ Use this workflow when adding or reviewing a Relux feature module.
   namespace/type ownership instead of dumping entities into one file.
 - Flows and sagas may read business state through dependencies, but must mutate
   state only by dispatching actions.
+- Do not inject a view-owned temporal `HybridState` into a flow or saga. Until
+  Relux exposes a stable runtime accessor for connected temporal state, carry
+  immutable `Sendable` input in the effect/action or use a lifecycle-stable
+  business/service dependency.
+- Prefer actors for flows, sagas, and stateful asynchronous services, fetchers,
+  repositories, storage, and caches. Keep dependencies `Sendable`.
+- Use `@MainActor` for UI/platform state and for narrow adapters around
+  synchronous third-party APIs whose contract requires the main thread, such
+  as specific WebRTC or Unity integrations.
 - Add focused Swift Testing coverage for reducer transitions, module
   registration, and flow/saga observable contracts when behavior changes.

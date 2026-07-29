@@ -4,6 +4,21 @@ All notable changes to this project are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- Established top-level `action`/`actions` as the canonical application
+  dispatch API, narrowed direct dispatcher calls to host-library lifecycle and
+  isolated integration-test boundaries, and aligned SwiftUI, temporal-state,
+  and logout examples with that rule.
+- Documented temporal state as view-owned, weakly connected through the SwiftUI
+  environment, requiring neither direct runtime plumbing nor explicit cleanup;
+  also documented the current lack of a stable injectable Flow dependency and
+  a possible future runtime state accessor.
+- Added actor-first concurrency guidance for flows, sagas, and stateful async
+  dependencies, with narrowly scoped `@MainActor` adapters for synchronous
+  third-party main-thread contracts such as specific WebRTC or Unity bridges,
+  while retaining immutable/stateless value types as valid exceptions.
+
 ## [v0.1.0] - 2026-07-14
 
 ### Added
