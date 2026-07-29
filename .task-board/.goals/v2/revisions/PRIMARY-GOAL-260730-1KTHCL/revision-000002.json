@@ -1,0 +1,46 @@
+{
+  "contract_version": "board-goal-v2",
+  "goal_id": "PRIMARY-GOAL-260730-1kthcl",
+  "revision": 2,
+  "expected_previous_revision": 1,
+  "previous_ref": {
+    "id": "PRIMARY-GOAL-260730-1kthcl",
+    "revision": 1
+  },
+  "owner": {
+    "kind": "parent",
+    "id": "primary"
+  },
+  "kind": "alignment",
+  "objective": "Update project agent policy to use Claude Opus 5 and Codex GPT-5.6 Sol with high reasoning for primary sessions and analogous task-board spawns, keep yolo mode enabled for both primary providers, remove any project fast-mode override, and retain scoped autocommit acknowledgement with commit timestamps adjusted after 20:00 MSK per owner preference.",
+  "scope": {
+    "requested_ids": null,
+    "resolved_leaf_items": null
+  },
+  "mutation_authority": "agent_discretion",
+  "success_predicate": "alignment_handled",
+  "provider_condition": "The bound parent session has handled this exact alignment revision.",
+  "native_reflection": "required",
+  "state": "cleared",
+  "legacy_refs": [
+    {
+      "contract": "primary-goal-v1",
+      "id": "PRIMARY-GOAL-260730-1kthcl",
+      "revision": 2
+    }
+  ],
+  "role_policy": {},
+  "mutation": {
+    "kind": "cleared",
+    "reason": "Objective achieved; TASK-260730-2dsegd accepted done after independent validation.",
+    "actor_context": {
+      "kind": "agent",
+      "actor_id": "alexis"
+    },
+    "authority": "agent_discretion"
+  },
+  "created_at": "2026-07-30T08:39:57.128749Z",
+  "updated_at": "2026-07-30T08:53:02.542168Z",
+  "created_by": "alexis",
+  "reason": "Objective achieved; TASK-260730-2dsegd accepted done after independent validation."
+}
