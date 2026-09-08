@@ -1,15 +1,11 @@
 ---
 name: swift-relux
-description: >
-  Swift Relux architecture guidance for the relux-works Swift libraries. Use when
-  working with swift-relux, SwiftUIRelux, swiftui-reluxrouter, Relux modules,
-  HybridState, BusinessState, UIState, Saga, Flow, Effect, Action, reducers,
-  Relux.Resolver, reluxTemporal, SwiftUI Relux environment injection, Relux
-  navigation routers, typed product analytics metric trees, typed localization
-  access trees, or module/package conventions for Relux-based Swift apps.
-  Russian triggers: релакс, свифт-релакс, релакс модуль, релакс роутер,
-  метрики, продуктовая аналитика, локализация, SwiftUI Relux, relux state,
-  relux flow, relux saga.
+description: >-
+  Implement and review Swift features using the relux-works Relux stack:
+  swift-relux, SwiftUIRelux, ReluxRouter, state/reducer modules, Saga/Flow,
+  runtime composition, temporal state, and Relux analytics integration.
+  Use for Relux-based apps (Swift Relux, свифт-релакс, релакс модуль,
+  релакс роутер), not generic SwiftUI, analytics, or localization tasks.
 ---
 
 # Swift Relux
@@ -27,15 +23,18 @@ Load only the files needed for the task.
 Instruction flows:
 
 - App composition, IoC, root runtime bootstrap:
-  read [instructions/app-bootstrap.md](instructions/app-bootstrap.md).
+  read [references/instructions/app-bootstrap.md](references/instructions/app-bootstrap.md).
 - Feature module authoring, reducers, flows, tests, analytics:
-  read [instructions/module-authoring.md](instructions/module-authoring.md).
+  read [references/instructions/module-authoring.md](references/instructions/module-authoring.md).
 - SwiftUI containers, views, temporal state, pull-to-refresh:
-  read [instructions/ui-integration.md](instructions/ui-integration.md).
+  read [references/instructions/ui-integration.md](references/instructions/ui-integration.md).
 - Logout, session reset, store cleanup:
-  read [instructions/logout-cleanup.md](instructions/logout-cleanup.md).
+  read [references/instructions/logout-cleanup.md](references/instructions/logout-cleanup.md).
 
 Reference sections:
+
+- Ecosystem package selection, version boundaries, dispatch semantics:
+  [references/overview/ecosystem.md](references/overview/ecosystem.md).
 
 - Core state management, actions, effects, reducers, sagas, flows:
   [references/core/relux-core.md](references/core/relux-core.md).
@@ -52,20 +51,22 @@ Reference sections:
 
 Reusable snippets:
 
-- [snippets/dispatch-runtime-selection.md](snippets/dispatch-runtime-selection.md)
-- [snippets/ioc-registry.md](snippets/ioc-registry.md)
-- [snippets/modular-projecting-router.md](snippets/modular-projecting-router.md)
-- [snippets/store-cleanup.md](snippets/store-cleanup.md)
-- [snippets/swiftui-container-page.md](snippets/swiftui-container-page.md)
-- [snippets/temporal-state.md](snippets/temporal-state.md)
-- [snippets/refreshable-perform-async.md](snippets/refreshable-perform-async.md)
-- [snippets/product-analytics.md](snippets/product-analytics.md)
-- [snippets/localization.md](snippets/localization.md)
+- [references/snippets/dispatch-runtime-selection.md](references/snippets/dispatch-runtime-selection.md)
+- [references/snippets/ioc-registry.md](references/snippets/ioc-registry.md)
+- [references/snippets/modular-projecting-router.md](references/snippets/modular-projecting-router.md)
+- [references/snippets/store-cleanup.md](references/snippets/store-cleanup.md)
+- [references/snippets/swiftui-container-page.md](references/snippets/swiftui-container-page.md)
+- [references/snippets/temporal-state.md](references/snippets/temporal-state.md)
+- [references/snippets/refreshable-perform-async.md](references/snippets/refreshable-perform-async.md)
+- [references/snippets/product-analytics.md](references/snippets/product-analytics.md)
+- [references/snippets/localization.md](references/snippets/localization.md)
 
 ## Default Workflow
 
 - Inspect the nearest `Package.swift`, app composition root, and existing module
   layout before proposing Relux changes.
+- Check the project's resolved package revisions before copying APIs; see the
+  ecosystem reference for source evidence and compatibility boundaries.
 - Prefer existing package and namespace patterns over creating a new local style.
 - Keep state changes in reducers. Do not mutate Relux state directly from flows.
 - Model side effects as `Effect` handled by `Flow` or `Saga`.

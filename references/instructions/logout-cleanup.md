@@ -2,9 +2,9 @@
 
 Use this workflow when implementing or reviewing logout/session reset.
 
-- Read [../references/core/relux-core.md](../references/core/relux-core.md) for
+- Read [../core/relux-core.md](../core/relux-core.md) for
   `Relux.Store.cleanup(exclusions:)` and state cleanup rules.
-- Read [../references/swiftui/swiftui-relux.md](../references/swiftui/swiftui-relux.md)
+- Read [../swiftui/swiftui-relux.md](../swiftui/swiftui-relux.md)
   for the logout transition pattern.
 - Use [../snippets/store-cleanup.md](../snippets/store-cleanup.md) for cleanup and
   logout ordering examples.

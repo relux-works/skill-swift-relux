@@ -70,7 +70,7 @@ runtime. When resolving the exact runtime and bootstrapping an embedded library
 are one host-owned operation, that bootstrap may dispatch through the resolved
 runtime before returning it; do not copy that ordering into an ordinary app
 startup task or temporal-state view. See
-[../../snippets/dispatch-runtime-selection.md](../../snippets/dispatch-runtime-selection.md).
+[../snippets/dispatch-runtime-selection.md](../snippets/dispatch-runtime-selection.md).
 
 This ordering matters. If startup actions mutate state or switch navigation
 while the resolver is still resolving, SwiftUI has not yet received the Relux
@@ -154,7 +154,7 @@ as lightweight UI shape protocols only; do not use them as permission to reach
 back into the store. Prefer plain SwiftUI inputs and callbacks so pages are
 previewable, testable, and reusable without constructing a Relux runtime.
 
-See [../../snippets/swiftui-container-page.md](../../snippets/swiftui-container-page.md)
+See [../snippets/swiftui-container-page.md](../snippets/swiftui-container-page.md)
 for a concrete container/page example.
 
 For pages and reusable components, group incoming parameters by role:
@@ -283,7 +283,7 @@ for effect handling once lookup, absence, lifetime, and actor-isolation
 semantics are explicit. Treat that as a future API direction; do not emulate it
 today with direct environment-runtime or store access from the view.
 
-See [../../snippets/temporal-state.md](../../snippets/temporal-state.md).
+See [../snippets/temporal-state.md](../snippets/temporal-state.md).
 
 ## Pull To Refresh
 
@@ -297,7 +297,7 @@ long-running business work:
 - await inside `.refreshable` only when the work is intentionally short and the
   system spinner should be tied to that exact operation.
 
-See [../../snippets/refreshable-perform-async.md](../../snippets/refreshable-perform-async.md).
+See [../snippets/refreshable-perform-async.md](../snippets/refreshable-perform-async.md).
 
 ## Logout Transition
 

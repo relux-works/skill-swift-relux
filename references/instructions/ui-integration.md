@@ -2,10 +2,10 @@
 
 Use this workflow when connecting Relux state/effects to SwiftUI.
 
-- Read [../references/swiftui/swiftui-relux.md](../references/swiftui/swiftui-relux.md)
+- Read [../swiftui/swiftui-relux.md](../swiftui/swiftui-relux.md)
   for containers, pages, local SwiftUI state, temporal state, logout transition,
   and `.refreshable` rules.
-- Read [../references/router/relux-router.md](../references/router/relux-router.md)
+- Read [../router/relux-router.md](../router/relux-router.md)
   when UI changes affect navigation stacks or route projections.
 - Use [../snippets/swiftui-container-page.md](../snippets/swiftui-container-page.md)
   for a container/page props-reactions-styles-resources example.

@@ -1,0 +1,24 @@
+{
+  "contract": "primary-goal-v1",
+  "id": "PRIMARY-GOAL-260909-2xuned",
+  "revision": 1,
+  "predecessor_ref": {
+    "id": "PRIMARY-GOAL-260730-62m0mt",
+    "revision": 5
+  },
+  "state": "active",
+  "scope": {
+    "kind": "board"
+  },
+  "objective": "Research the relux-works Swift ecosystem, enrich swift-relux guidance with verified information, and package and validate the skill for Curator installation and popular agent environments.",
+  "mutation": {
+    "kind": "created",
+    "reason": "User requested ecosystem review and Curator migration.",
+    "actor": {
+      "kind": "primary_parent",
+      "actor_id": "iv"
+    }
+  },
+  "created_at": "2026-09-08T20:41:43.61251Z",
+  "updated_at": "2026-09-08T20:41:43.61251Z"
+}

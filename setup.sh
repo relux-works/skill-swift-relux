@@ -12,17 +12,11 @@ INSTALL_STATE="$INSTALL_STATE_DIR/install.json"
 VERIFY_ONLY=0
 
 RUNTIME_EXCLUDES=(
-  --exclude='.git'
-  --exclude='.gitignore'
-  --exclude='.gitattributes'
-  --exclude='.gitmodules'
-  --exclude='.task-board'
-  --exclude='.temp'
-  --exclude='.DS_Store'
-  --exclude='README.md'
-  --exclude='task-board.config.json'
-  --exclude='setup.sh'
-  --exclude='tests'
+  --include='/SKILL.md'
+  --include='/agent-skill.json'
+  --include='/agents/***'
+  --include='/references/***'
+  --exclude='*'
 )
 
 red() { print -P "%F{red}$1%f" }
@@ -64,7 +58,7 @@ install_skill_copy() {
   fi
 
   mkdir -p "$agents_dest"
-  rsync -a --delete "${RUNTIME_EXCLUDES[@]}" "$SKILL_DIR/" "$agents_dest/"
+  rsync -a --delete --delete-excluded "${RUNTIME_EXCLUDES[@]}" "$SKILL_DIR/" "$agents_dest/"
 
   scrub_git_metadata "$agents_dest"
   green "Copied skill -> $agents_dest/"
@@ -124,7 +118,7 @@ verify_install() {
     exit 1
   fi
 
-  drift="$(rsync -ainc --delete "${RUNTIME_EXCLUDES[@]}" "$SKILL_DIR/" "$agents_dest/")"
+  drift="$(rsync -ainc --delete --delete-excluded "${RUNTIME_EXCLUDES[@]}" "$SKILL_DIR/" "$agents_dest/")"
   if [[ -n "$drift" ]]; then
     red "Install verification failed: installed runtime copy differs from source"
     print -r -- "$drift"

@@ -6,6 +6,11 @@ All notable changes to this project are documented in this file.
 
 ### Changed
 
+- Added a Curator schema-3 context package, moved instructions and snippets under
+  `references/`, and documented multi-agent installation and version boundaries.
+- Added pinned Relux ecosystem evidence, dispatch/result semantics, Codex UI
+  metadata, and signed-snapshot installation and resource-graph checks.
+
 - Established top-level `action`/`actions` as the canonical application
   dispatch API, narrowed direct dispatcher calls to host-library lifecycle and
   isolated integration-test boundaries, and aligned SwiftUI, temporal-state,

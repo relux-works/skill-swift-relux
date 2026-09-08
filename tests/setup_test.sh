@@ -14,9 +14,9 @@ export XDG_CONFIG_HOME="$TEST_ROOT/config"
 "$REPO_DIR/setup.sh" >/dev/null
 
 INSTALLED="$AGENTS_SKILLS_DIR/swift-relux"
-[[ -f "$INSTALLED/instructions/module-authoring.md" ]]
+[[ -f "$INSTALLED/references/instructions/module-authoring.md" ]]
 [[ -f "$INSTALLED/references/router/relux-router.md" ]]
-[[ -f "$INSTALLED/snippets/product-analytics.md" ]]
+[[ -f "$INSTALLED/references/snippets/product-analytics.md" ]]
 [[ ! -e "$INSTALLED/.git" ]]
 [[ ! -e "$INSTALLED/task-board.config.json" ]]
 [[ ! -e "$INSTALLED/setup.sh" ]]
@@ -37,12 +37,25 @@ fi
 "$REPO_DIR/setup.sh" >/dev/null
 
 # Verification must reject an installed copy whose resource graph was damaged.
-rm "$INSTALLED/instructions/module-authoring.md"
+rm "$INSTALLED/references/instructions/module-authoring.md"
 if "$REPO_DIR/setup.sh" --verify-only >/dev/null 2>&1; then
   print -u2 "verification accepted an incomplete installed copy"
   exit 1
 fi
 "$REPO_DIR/setup.sh" >/dev/null
-[[ -f "$INSTALLED/instructions/module-authoring.md" ]]
+[[ -f "$INSTALLED/references/instructions/module-authoring.md" ]]
+
+# Upgrade must remove obsolete layout and source-only configuration.
+mkdir -p "$INSTALLED/instructions" "$INSTALLED/.agents"
+print obsolete > "$INSTALLED/instructions/old.md"
+print source-only > "$INSTALLED/.agents/config.txt"
+if "$REPO_DIR/setup.sh" --verify-only >/dev/null 2>&1; then
+  print -u2 "verification accepted obsolete installed content"
+  exit 1
+fi
+"$REPO_DIR/setup.sh" >/dev/null
+[[ ! -e "$INSTALLED/instructions" ]]
+[[ ! -e "$INSTALLED/.agents" ]]
+[[ -f "$INSTALLED/agents/openai.yaml" ]]
 
 print "setup installer test passed"

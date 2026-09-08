@@ -127,7 +127,7 @@ Recommended layout:
 - Keep call sites declarative: views and flows should say what happened, not
   how the collector payload is shaped.
 
-See [../../snippets/product-analytics.md](../../snippets/product-analytics.md)
+See [../snippets/product-analytics.md](../snippets/product-analytics.md)
 for typed tree, call-site, and effect-based analytics examples.
 
 ## Flow

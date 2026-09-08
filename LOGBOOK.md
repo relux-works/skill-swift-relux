@@ -3,6 +3,15 @@
 > Institutional memory. Concise, factual, high-signal.
 > Newest entries first. One block per insight.
 
+## 2026-09-09
+
+### Curator context migration
+- FINDING: Curator excludes root `instructions/` and `snippets/`; both moved under `references/`, preserving relative links.
+- FINDING: Local development path substitutions resolve git HEAD, not working-tree changes. The first installation tested the old package and was rejected as migration evidence after byte inspection.
+- DECISION: Validate an explicitly signed snapshot with actual Curator installation, exact content parity, all local links, four adapters, status, and repeat installation.
+- FINDING: Pi 0.84.2 accepts this package through its actual explicit-path loader. Current upstream adds `.agents/skills` discovery; the installed version needs `--skill` or configured skills paths.
+- EVIDENCE: `references/overview/ecosystem.md` pins seven reviewed ecosystem repositories. Task TASK-260909-131uj5 records detailed validation and source provenance.
+
 ## 2026-07-30
 
 ### 1222 — Temporal attachment is view-owned, not a runtime exception

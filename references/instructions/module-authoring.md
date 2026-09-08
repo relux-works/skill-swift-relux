@@ -2,12 +2,12 @@
 
 Use this workflow when adding or reviewing a Relux feature module.
 
-- Read [../references/modules/module-conventions.md](../references/modules/module-conventions.md)
+- Read [../modules/module-conventions.md](../modules/module-conventions.md)
   for module shape, namespace naming, reducers, flow/saga rules, tests, and
   analytics.
-- Read [../references/core/relux-core.md](../references/core/relux-core.md) for
+- Read [../core/relux-core.md](../core/relux-core.md) for
   state, action, effect, reducer, dispatch, flow, and saga semantics.
-- Read [../references/packages/package-conventions.md](../references/packages/package-conventions.md)
+- Read [../packages/package-conventions.md](../packages/package-conventions.md)
   when the work crosses SwiftPM package boundaries or resources.
 - Use [../snippets/product-analytics.md](../snippets/product-analytics.md) for
   typed product analytics tree examples.

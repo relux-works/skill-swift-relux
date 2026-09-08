@@ -1,0 +1,11 @@
+{
+  "schema_version": 3,
+  "capabilities": {
+    "network": "none",
+    "filesystem": "repo",
+    "exec": "none",
+    "secrets": "none",
+    "env_read": [],
+    "prompt_scope": "Swift Relux architecture, module authoring, SwiftUI integration, routing, and testing guidance."
+  }
+}

@@ -75,7 +75,7 @@
   `loc.profiles.management.header`, never raw keys like
   `"loc.profiles.management.header"`.
 
-See [../../snippets/localization.md](../../snippets/localization.md) for app
+See [../snippets/localization.md](../snippets/localization.md) for app
 target and SwiftPM localization accessor examples.
 
 ## Tests

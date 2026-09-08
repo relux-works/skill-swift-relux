@@ -1,75 +1,134 @@
-# skill-swift-relux
+# Swift Relux agent skill
 
-Reusable skill package for Swift codebases built on the relux-works Relux stack:
-`swift-relux`, `swiftui-relux`, and `swiftui-reluxrouter`.
+Architecture and integration guidance for Swift apps using `Relux`,
+`SwiftUIRelux`, and `ReluxRouter`, with source-backed ecosystem notes.
+The portable skill name is **swift-relux**; the repository is **skill-swift-relux**.
+Installed directories must use the skill name.
 
-## Structure
+## Install with Curator
+
+Install [Curator](https://github.com/relux-works/curator#install), then initialize
+its machine configuration once if needed:
+
+```sh
+curator bootstrap --if-missing --non-interactive --skills-root "$HOME/src/skills"
+```
+
+In the application repository, add the following declaration to `Skillfile.json`
+(preserve existing skills and project settings):
+
+```json
+{
+  "schema_version": 1,
+  "agents": ["claude_code", "codex_cli", "opencode", "gemini", "cursor", "windsurf"],
+  "skills": [
+    {
+      "name": "swift-relux",
+      "git": "https://github.com/relux-works/skill-swift-relux.git",
+      "branch": "main"
+    }
+  ]
+}
+```
+
+```sh
+curator install . --fix-gitignore
+curator status . --check
+```
+
+For reproducibility, replace `branch` with `revision` containing the full reviewed
+commit SHA, or `tag` naming a release containing this migration. Select exactly
+one reference field. Older releases predate the context-layout fix.
+An existing configured project can also use:
+
+```sh
+curator add swift-relux --git https://github.com/relux-works/skill-swift-relux.git --branch main
+```
+
+For global installation, use `curator global init` followed by
+`curator global add swift-relux --git https://github.com/relux-works/skill-swift-relux.git --branch main`.
+Choose global agent adapters in the global manifest/configuration. Do not run the
+legacy installer over a Curator-managed copy: choose one owner per install scope.
+
+This is a context-only package using `agent-skill.json` schema 3 with explicit
+capabilities. It exports no commands, executable runtime, MCP requirements, or
+skill dependencies. Swift libraries belong to the app's SwiftPM dependencies;
+they are not Curator skill dependencies. Installation does not run `setup.sh`
+or require Xcode. Building app code still requires its native toolchain.
+
+## Agent compatibility
+
+| Environment | Delivery / invocation |
+| --- | --- |
+| Claude Code | Curator adapter `.claude/skills/swift-relux`; `/swift-relux` |
+| Codex | Curator adapter `.codex/skills/swift-relux`; `$swift-relux`; optional UI metadata in `agents/openai.yaml` |
+| OpenCode | Native `.agents/skills/swift-relux` discovery; load the `swift-relux` skill |
+| Pi | Current upstream supports `.agents/skills`; explicit fallback: `pi --skill .agents/skills/swift-relux` and `/skill:swift-relux` |
+| Gemini CLI | Curator adapter `.gemini/skills/swift-relux` |
+| Cursor | Curator adapter `.cursor/rules/swift-relux`; delivery is not proof that every Cursor version discovers this layout as a native skill |
+| Windsurf | Curator uses native `.agents/skills` discovery; verify discovery in the installed agent version |
+| Other Agent Skills clients | Copy the complete `SKILL.md`, `agents/`, and `references/` tree to a supported skill directory named `swift-relux` |
+
+Curator's checked skill-adapter table does not list `pi`; do not add it to the
+`agents` array expecting a generated Pi adapter. Pi 0.84.2 was checked with its
+real skill loader using an explicit path. Its default loader predates upstream
+`.agents/skills` discovery, so use the fallback for that version. Global fallback:
+`pi --skill "$HOME/.agents/skills/swift-relux"` when that is the installed context.
+
+These are packaging/delivery checks, not claims of live model execution in every
+client. Sources: [Curator adapters](https://github.com/relux-works/curator/blob/main/internal/adapters/adapters.go),
+[Pi skills](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md),
+[OpenCode skills](https://opencode.ai/docs/skills/), and
+[Claude skills](https://code.claude.com/docs/en/skills).
+
+## Package layout
 
 ```text
-skill-swift-relux/
-├── SKILL.md
-├── instructions/
-├── references/
-├── snippets/
-├── .task-board/
-└── setup.sh
+SKILL.md                 Portable entrypoint and task routing
+agent-skill.json          Curator package manifest
+agents/openai.yaml        Optional Codex display metadata
+references/
+  instructions/          App bootstrap, module authoring, UI, logout workflows
+  snippets/              Dispatch, IoC, routing, temporal state, analytics, localization
+  core/ swiftui/ router/  Runtime and integration references
+  modules/ packages/     Project conventions
+  overview/              Scope and pinned ecosystem evidence
 ```
 
-## Setup
+Curator selects only standard context roots. The former root-level `instructions/`
+and `snippets/` now live under `references/` so all linked resources survive
+installation. Repository administration and tests remain outside installed context.
+Start with [SKILL.md](SKILL.md); read only references relevant to the task.
+See [ecosystem evidence](references/overview/ecosystem.md) for package boundaries
+and the reviewed source revisions.
 
-```bash
-git clone git@github.com:relux-works/skill-swift-relux.git
+## Legacy manual installation
+
+```sh
+git clone https://github.com/relux-works/skill-swift-relux.git
 cd skill-swift-relux
 ./setup.sh
+./setup.sh --verify-only
 ```
 
-Setup installs the skill runtime into `~/.agents/skills/swift-relux` and links
-it from `~/.claude/skills/swift-relux` and `~/.codex/skills/swift-relux`.
+This macOS/zsh path copies the skill into `~/.agents/skills/swift-relux` and
+creates Claude/Codex symlinks. Use Curator for managed multi-agent delivery.
+It preserves the established install path and no longer copies repository-local
+agent configuration into the skill. Installed context is independent of the checkout.
 
-The installed copy is degitized and independent of the source checkout. Setup
-repairs stale or incomplete copies and verifies source-to-installed parity plus
-every local resource linked from `SKILL.md`. Run `./setup.sh --verify-only` to
-detect drift without repairing it.
+## Tools and validation
 
-## Resource Routing
+| Tool | Purpose / exact command | Outputs |
+| --- | --- | --- |
+| Curator | `curator skill check .` | Package validation on stdout |
+| Python 3 | `python3 tests/package_test.py` | Local resource graph validation |
+| Curator integration test | `python3 tests/curator_install_test.py` | Signed isolated snapshot, install, content parity, adapter, status and repeat-install evidence in `.temp/curator-test-*/`; requires configured Git signing, Python 3 and Curator |
+| Installed context check | `python3 tests/package_test.py /path/to/test-project` | Byte parity and complete Markdown link graph for canonical context and four adapters |
+| zsh / rsync | `zsh -n setup.sh` and `./tests/setup_test.sh` | Legacy installation checks; temporary test directory removed on exit |
+| Legacy installer | `./setup.sh` or `./setup.sh --verify-only` | Skill copy and Claude/Codex symlinks; install state under `~/.config/swift-relux-skill/` |
+| task-board | `task-board q --format compact 'summary()'` | Repository work tracking in `.task-board/` |
 
-Use `SKILL.md` as the entrypoint and load only the files needed for the task.
-
-Instruction flows:
-
-- `instructions/app-bootstrap.md`
-- `instructions/module-authoring.md`
-- `instructions/ui-integration.md`
-- `instructions/logout-cleanup.md`
-
-Reference packs:
-
-- `references/core/relux-core.md`
-- `references/swiftui/swiftui-relux.md`
-- `references/router/relux-router.md`
-- `references/modules/module-conventions.md`
-- `references/packages/package-conventions.md`
-- `references/overview/micro-spec.md`
-
-Reusable snippets:
-
-- `snippets/dispatch-runtime-selection.md`
-- `snippets/ioc-registry.md`
-- `snippets/modular-projecting-router.md`
-- `snippets/store-cleanup.md`
-- `snippets/swiftui-container-page.md`
-- `snippets/temporal-state.md`
-- `snippets/refreshable-perform-async.md`
-- `snippets/product-analytics.md`
-- `snippets/localization.md`
-
-## Tools
-
-| Tool | Purpose | Command | Outputs |
-| --- | --- | --- | --- |
-| `setup.sh` | Install the standalone skill runtime and symlink it into Claude/Codex runtime locations | `./setup.sh` | Installed copy under `~/.agents/skills/swift-relux`, symlinks under `~/.claude/skills/` and `~/.codex/skills/` |
-| `zsh` | Validate installer shell syntax before release | `zsh -n setup.sh` | No artifact; exits non-zero on syntax errors |
-| Installer regression test | Exercise setup in isolated temporary directories | `./tests/setup_test.sh` | Temporary files under `${TMPDIR:-/tmp}`; removed on exit |
-| Skill validator | Validate skill metadata and structure | `python3 -m venv .temp/skill-validator && .temp/skill-validator/bin/pip install pyyaml && .temp/skill-validator/bin/python "${CODEX_HOME:-$HOME/.codex}/skills/.system/skill-creator/scripts/quick_validate.py" .` | Validation result on stdout; environment under `.temp/skill-validator/` |
-| `task-board` | Track implementation and review work | `task-board q --format compact 'summary()'` | `.task-board/` |
-| `agents-infra` | Install project-local agent runtime and preserve primary-session policy | `agents-infra setup local --project-dir "$PWD" --source-dir /path/to/relux-agents-infra` | Runtime under `.agents/`, `.claude/`, `.codex/`, and `.local/`; tracked policy in `.agents/.configs/project-config.toml` |
+Curator resolves git snapshots, including `HEAD` for a local development path
+substitution; it does not test uncommitted edits. The integration test therefore
+creates and verifies a signed fixture commit before installing. It sets only a
+task-local `CURATOR_CONFIG`, preserving the user's home and installed skills.

@@ -5,9 +5,9 @@ reviewing app startup.
 
 - Inspect the app entry point, registry/composition root, and existing
   `Relux.Resolver` usage before changing code.
-- Read [../references/core/relux-core.md](../references/core/relux-core.md) for
+- Read [../core/relux-core.md](../core/relux-core.md) for
   `Relux`, `Store`, dispatcher, state, flow, and saga rules.
-- Read [../references/swiftui/swiftui-relux.md](../references/swiftui/swiftui-relux.md)
+- Read [../swiftui/swiftui-relux.md](../swiftui/swiftui-relux.md)
   for `Relux.Resolver`, SwiftUI environment injection, and startup dispatch
   ordering.
 - Use [../snippets/ioc-registry.md](../snippets/ioc-registry.md) when a concrete

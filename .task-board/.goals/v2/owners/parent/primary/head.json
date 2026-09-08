@@ -4,9 +4,13 @@
     "kind": "parent",
     "id": "primary"
   },
-  "latest_ref": {
-    "id": "PRIMARY-GOAL-260730-62m0mt",
-    "revision": 5
+  "active_ref": {
+    "id": "PRIMARY-GOAL-260909-2xuned",
+    "revision": 1
   },
-  "native_status": "applied"
+  "latest_ref": {
+    "id": "PRIMARY-GOAL-260909-2xuned",
+    "revision": 1
+  },
+  "native_status": "pending-unbound"
 }

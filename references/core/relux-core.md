@@ -80,7 +80,7 @@ For real apps, do not build Relux infrastructure directly inside SwiftUI view
 bodies. Use the app scaffold to create an IoC registry/composition root, then
 register Relux infrastructure and feature modules there.
 
-See [../../snippets/ioc-registry.md](../../snippets/ioc-registry.md) for a
+See [../snippets/ioc-registry.md](../snippets/ioc-registry.md) for a
 concrete registry and Relux builder example.
 
 This keeps dependency ownership explicit:
@@ -129,7 +129,7 @@ late compiler-cleanup exercise.
 ## Store Cleanup
 
 Use `Relux.Store.cleanup(exclusions:)` for app-wide session cleanup, especially
-on logout. See [../../snippets/store-cleanup.md](../../snippets/store-cleanup.md)
+on logout. See [../snippets/store-cleanup.md](../snippets/store-cleanup.md)
 for a concrete cleanup example.
 
 The exclusions list takes `Relux.BusinessState.Type` values. Use it for states
@@ -218,7 +218,7 @@ func handleApplicationOpen(using provider: any ReluxProvider) async {
 
 Make ownership explicit through a runtime provider or dispatcher injection.
 Runtime availability alone is not a reason to use the direct dispatcher API.
-See [../../snippets/dispatch-runtime-selection.md](../../snippets/dispatch-runtime-selection.md)
+See [../snippets/dispatch-runtime-selection.md](../snippets/dispatch-runtime-selection.md)
 for primary-runtime, saga/flow, host-provider, and integration-test examples.
 
 Use `performAsync { ... }` from synchronous call sites such as SwiftUI `Button`
@@ -239,7 +239,7 @@ result matters; use `await action` or `await actions` instead so ordering and
 failures remain observable. The important SwiftUI exception is `.refreshable`:
 do not tie SwiftUI pull-to-refresh to a slow awaited Relux action; see
 [../swiftui/swiftui-relux.md](../swiftui/swiftui-relux.md) and
-[../../snippets/refreshable-perform-async.md](../../snippets/refreshable-perform-async.md).
+[../snippets/refreshable-perform-async.md](../snippets/refreshable-perform-async.md).
 `performAsync` targets `Relux.shared`; do not use it when an exact
 provider-owned runtime or injected dispatcher must receive the event.
 

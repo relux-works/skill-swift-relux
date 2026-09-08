@@ -1,7 +1,11 @@
 {
   "contract": "primary-goal-v1",
+  "active_ref": {
+    "id": "PRIMARY-GOAL-260909-2xuned",
+    "revision": 1
+  },
   "latest_ref": {
-    "id": "PRIMARY-GOAL-260730-62m0mt",
-    "revision": 5
+    "id": "PRIMARY-GOAL-260909-2xuned",
+    "revision": 1
   }
 }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Swift Relux"
+  short_description: "Swift Relux architecture and integration guidance"
+  default_prompt: "Use $swift-relux to implement or review this feature using the project's existing Relux conventions."
