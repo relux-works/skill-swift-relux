@@ -23,3 +23,11 @@ reviewing app startup.
   runtime. Do not replace that boundary with top-level helpers that assume
   `Relux.shared` is already materialized.
 - Do not build Relux runtime infrastructure inside view bodies.
+
+## Native macOS menu-bar apps
+
+A `MenuBarExtra` popover may be created and destroyed repeatedly. Own the registry/runtime once at application scope; do not create a runtime per popover or in `body`. Use an `NSApplicationDelegateAdaptor` for the macOS application lifecycle. If background monitoring must start before the popover is opened, bootstrap through the application-owned runtime boundary, retain its task and await runtime registration before dispatching. Keep controls disabled until the first state refresh.
+
+Use a thin SwiftUI container to map `HybridState` into plain page props and callbacks. Keep `Process` and launchd operations in an actor service called by a flow, with observable errors and balanced pending-state actions. Do not call shell commands synchronously on the main actor. Stopping an app's UI and stopping a managed external service are separate operations; make their behavior explicit in the UI.
+
+When a `@MainActor` module conforms to the nonisolated `Relux.Module` protocol, `states` and `sagas` can be `nonisolated` computed properties over immutable `Sendable` actor/state references. Check this against the pinned package instead of suppressing isolation checking.
